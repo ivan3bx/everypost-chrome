@@ -3,11 +3,31 @@
     "name": "EveryPost Extension",
     "description": "Bookmarks for the modern web.",
     "version": "0.0.1",
+    "permissions": [
+        "activeTab",
+        "scripting",
+        "storage"
+    ],
     "background": {
         "service_worker": "/background.js"
     },
     "action": {
         "default_popup": "popup.html"
+    },
+    "commands": {
+        "extract-links": {
+            "suggested_key": {
+                "default": "Ctrl+M",
+                "mac": "MacCtrl+M"
+            },
+            "description": "Extracts links on the current page."
+        },
+        "_execute_action": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+M",
+                "mac": "MacCtrl+Shift+M"
+            }
+        }
     },
     "content_scripts": [
         {
