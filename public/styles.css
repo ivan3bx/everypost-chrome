@@ -1,6 +1,6 @@
 .highlighted
 {
-  background: #FF7A59;
-  opacity: .2;
+  background: #FF7A59 !important;
+  opacity: .8 !important;
   cursor:default;
 }
