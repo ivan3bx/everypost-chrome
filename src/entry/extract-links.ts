@@ -9,18 +9,27 @@ class LinkSelector {
         this.selectedTarget = null
     }
 
+    get target(): Element | null {
+        return this.selectedTarget
+    }
+
+    set target(t: Element | null) {
+        if (t == null && this.selectedTarget) {
+            this.selectedTarget.classList.remove("everypost-highlight")
+            this.selectedTarget = null
+        } else if (t instanceof Element) {
+            this.selectedTarget = t
+            t.classList.add('everypost-highlight');
+        }
+    }
+
     handleMouseOver = (ev: MouseEvent) => {
         let path = Array<Element>()
 
         if (ev.target instanceof Element) {
             path = this.#calculatePath(ev.target)
-            this.selectedTarget = path[0]
+            this.target = path[0]
         }
-
-        if (this.selectedTarget instanceof Element) {
-            this.selectedTarget.classList.add('everypost-highlight');
-        }
-
     }
 
     handleMouseOut = (ev: MouseEvent) => {
@@ -28,9 +37,7 @@ class LinkSelector {
             return
         }
 
-        if (this.selectedTarget) {
-            this.selectedTarget.classList.remove("everypost-highlight")
-        }
+        this.target = null
     }
 
     handleMouseDown = (ev: MouseEvent) => {
@@ -42,6 +49,22 @@ class LinkSelector {
         }
 
         console.log("Links to be read from: " + this.#xpath(this.selectedTarget))
+
+        const elements: NodeListOf<HTMLAnchorElement> = this.selectedTarget.querySelectorAll('a:link:not([href^=javascript])');
+        const links = new Array(elements.length);
+        for (let i = 0; i < elements.length; i++) {
+            links[i] = {
+                href: elements[i].href,
+                hash: elements[i].hash,
+                host: elements[i].host,
+                hostname: elements[i].hostname,
+                origin: elements[i].origin,
+                pathname: elements[i].pathname,
+                search: elements[i].search,
+                text: elements[i].text,
+            };
+        }
+        chrome.runtime.sendMessage({ links: links })
     }
 
     handleClick = (ev: MouseEvent) => {

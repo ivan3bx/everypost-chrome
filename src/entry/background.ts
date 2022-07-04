@@ -1,29 +1,9 @@
-let active = false;
-
-console.log('hello world background todo something~')
-
-function makeOrange(color:string) {
-    console.log("making color: " + color)
-    document.body.style.backgroundColor = color
-}
-
-chrome.action.onClicked.addListener((tab) => {
-    console.log("added listener..")
-    active = !active;
-    const color = active ? 'orange' : 'white'
-    chrome.scripting.executeScript({
-        target: {tabId: tab.id ? tab.id : -1},
-        func: makeOrange,
-        args: [color]
-    }).then()
-})
-
 async function getCurrentTab() {
     const queryOptions = { active: true, lastFocusedWindow: true };
     // `tab` will either be a `tabs.Tab` instance or `undefined`.
     const [tab] = await chrome.tabs.query(queryOptions);
     return tab;
-  }
+}
 
 chrome.commands.onCommand.addListener((command) => {
     console.log(`Command invoked: ${command}'`)
@@ -33,7 +13,7 @@ chrome.commands.onCommand.addListener((command) => {
 
             chrome.scripting.insertCSS(
                 {
-                    target: {tabId: result.id ? result.id : -1},
+                    target: { tabId: result.id ? result.id : -1 },
                     files: ["styles.css"],
                 },
                 () => {
@@ -43,7 +23,7 @@ chrome.commands.onCommand.addListener((command) => {
 
             chrome.scripting.executeScript(
                 {
-                    target: {tabId: result.id ? result.id : -1},
+                    target: { tabId: result.id ? result.id : -1 },
                     files: ["extract-links.js"],
                 },
                 () => {
@@ -52,4 +32,15 @@ chrome.commands.onCommand.addListener((command) => {
             )
         })
     }
+})
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    // Extracts links
+    if (message.links !== undefined) {
+        message.links.forEach((link: any) => {
+            console.log("HREF: " + link.href)
+        });
+    }
+    console.log("Got the message:" + message)
+    sendResponse({ farewell: "goodbye" });
 })
