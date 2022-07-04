@@ -1,51 +1,89 @@
 console.log("extracting links...");
 
+class LinkSelector {
+    docElement: Document
+    selectedTarget: Element | null
 
-let currentHighlight: Element
-
-window.addEventListener('mouseover', function (e) {
-    let path = Array<Element>()
-
-    // is this part of a div that contains some content?
-    if (e.target instanceof Element) {
-        path = calculatePath(this.document, e.target)
+    constructor(document: Document) {
+        this.docElement = document
+        this.selectedTarget = null
     }
 
-    if (path.length > 0 && path[0] instanceof Element) {
-        currentHighlight = path[0]
-        path[0].classList.add('highlighted');
-    }
-});
+    handleMouseOver = (ev: MouseEvent) => {
+        let path = Array<Element>()
 
-window.addEventListener('mouseout', function (e) {
-    if (e.target instanceof Element) {
-        const path = calculatePath(this.document, e.target)
-        if (path[0] == currentHighlight) {
-            console.log("Removing")
-            currentHighlight.classList.remove("highlighted")
-        } else {
-            console.log("Not removing")
-        }
-    }
-});
-
-function calculatePath(document: Document, el?: Element): Array<Element> {
-    const path = [el as Element]
-
-    while (el != null) {
-        if (el.tagName == "DIV" && el.textContent != null && el.textContent.length > 0) {
-            console.log(`Breaking: ${path.map((element) => `[${element.tagName}] > `)}`)
-            break
-        } else if (el.parentElement && el.parentElement != document.documentElement) {
-            path.unshift(el.parentElement)
-            console.log(`Appended: ${path.map((element) => `[${element.tagName}] > `)}`)
-        } else {
-            console.log(`Else..: ${path.map((element) => `[${element.tagName}] > `)}`)
-            break
+        if (ev.target instanceof Element) {
+            path = this.#calculatePath(ev.target)
+            this.selectedTarget = path[0]
         }
 
-        el = el.parentElement
+        if (this.selectedTarget instanceof Element) {
+            this.selectedTarget.classList.add('everypost-highlight');
+        }
+
     }
 
-    return path
+    handleMouseOut = (ev: MouseEvent) => {
+        if (!(ev.target instanceof Element)) {
+            return
+        }
+
+        if (this.selectedTarget) {
+            this.selectedTarget.classList.remove("everypost-highlight")
+        }
+    }
+
+    handleMouseDown = (ev: MouseEvent) => {
+        ev.preventDefault()
+        ev.stopPropagation()
+
+        if (this.selectedTarget == null) {
+            return
+        }
+
+        console.log("Links to be read from: " + this.#xpath(this.selectedTarget))
+    }
+
+    handleClick = (ev: MouseEvent) => {
+        ev.preventDefault()
+        ev.stopPropagation()
+    }
+
+    #calculatePath = (el?: Element): Array<Element> => {
+        const path = [el as Element]
+
+        while (el != null) {
+            if (el.tagName == "DIV" && el.textContent != null && el.textContent.length > 0) {
+                break
+            } else if (el.parentElement && el.parentElement != this.docElement.documentElement) {
+                path.unshift(el.parentElement)
+            } else {
+                break
+            }
+
+            el = el.parentElement
+        }
+
+        return path
+    }
+
+    #xpath = (el: Element | null): string => {
+        if (typeof el == "string") return this.docElement.evaluate(el, this.docElement, null, 0, null).stringValue
+        if (!el || el.nodeType != 1) return ''
+        if (el.id) return "//" + el.tagName.toLowerCase() + "[@id='" + el.id + "']"
+
+        if (el.parentNode) {
+            const sames = [].filter.call(el.parentNode.children, function (x: Element) { return x.tagName == el.tagName })
+            return this.#xpath(el.parentElement) + '/' + el.tagName.toLowerCase() + (sames.length > 1 ? '[' + (Array<Element>().indexOf.call(sames, el) + 1) + ']' : '')
+        } else {
+            return ''
+        }
+    }
 }
+
+const linkSelector = new LinkSelector(window.document)
+
+window.addEventListener('mouseover', linkSelector.handleMouseOver)
+window.addEventListener('mouseout', linkSelector.handleMouseOut)
+window.addEventListener('mousedown', linkSelector.handleMouseDown)
+window.addEventListener("click", linkSelector.handleClick)
