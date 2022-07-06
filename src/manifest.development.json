@@ -4,9 +4,13 @@
     "description": "Bookmarks for the modern web.",
     "version": "0.0.1",
     "permissions": [
-        "activeTab",
-        "scripting",
+        "tabs",
+        "notifications",
+        "cookies",
         "storage"
+    ],
+    "host_permissions": [
+        "https://everypost.in/"
     ],
     "background": {
         "service_worker": "/background.js"

@@ -5,7 +5,7 @@ const fs = require('fs')
 const pages = {}
 
 function getEntryFile (entryPath) {
-  let files = fs.readdirSync(entryPath)
+  const files = fs.readdirSync(entryPath)
   return files
 }
 

@@ -1,12 +1,13 @@
 import { shallowMount } from '@vue/test-utils'
-import HelloWorld from '@/components/HelloWorld.vue'
+import Popup from '@/view/popup.vue'
 
-describe('HelloWorld.vue', () => {
-  it('renders props.msg when passed', () => {
-    const msg = 'new message'
-    const wrapper = shallowMount(HelloWorld, {
+describe('Popup.vue', () => {
+  it('renders default Sign In window', () => {
+    const msg = 'Sign In'
+    const wrapper = shallowMount(Popup, {
       props: { msg }
     })
+    console.log(wrapper.text())
     expect(wrapper.text()).toMatch(msg)
   })
 })
