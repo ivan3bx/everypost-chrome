@@ -10,13 +10,14 @@
         "storage"
     ],
     "host_permissions": [
-        "https://everypost.in/"
+        "https://everypost.in/*",
+        "http://localhost:3000/*"
     ],
     "background": {
         "service_worker": "/background.js"
     },
     "action": {
-        "default_popup": "popup.html"
+        "default_popup": "main.html"
     },
     "commands": {
         "extract-links": {
@@ -36,7 +37,7 @@
     "content_scripts": [
         {
             "matches": [
-                "<all_urls>"
+                "https://everypost.in/*"
             ],
             "js": [
                 "/content.js"
