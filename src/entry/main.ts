@@ -14,13 +14,20 @@ const router = createRouter({
   routes: routes,
 });
 
-
-// replace this with a lookup to some endpoint (everypost.in/api/auth_status)
-// which returns 200 if user is authenticated, or 403/404 if not.
 //
-// render the authentication popup if != 200, otherwise return the root "success" modal
+// Initialize popup contents based on logged-in state
+//
 chrome.storage.local.get({ logged_in: false }, (data) => {
   const component = data.logged_in ? Actions : Popup
   createApp(component).use(router).mount("#app")
 })
+
+
+// Highlight a counter as badge text
+// eslint-disable-next-line
+function setBadgeText(count: number) {
+  const tag = (count > 8) ? "9+" : `${count}`
+  chrome.action.setBadgeText({ text: tag })
+  chrome.action.setBadgeBackgroundColor({ color: '#e62e00' });
+}
 

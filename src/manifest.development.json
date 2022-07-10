@@ -19,6 +19,9 @@
     "action": {
         "default_popup": "main.html"
     },
+    "icons": {
+        "128": "icon_128.png"
+    },
     "commands": {
         "extract-links": {
             "suggested_key": {
@@ -40,7 +43,7 @@
                 "https://everypost.in/*"
             ],
             "js": [
-                "/content.js"
+                "/content_everypost.js"
             ]
         }
     ]
