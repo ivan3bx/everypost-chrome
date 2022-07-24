@@ -45,6 +45,17 @@
             "js": [
                 "/content_everypost.js"
             ]
+        },
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "exclude_matches": [
+                "https://everypost.in/*"
+            ],
+            "js": [
+                "/content.js"
+            ]
         }
     ]
 }
