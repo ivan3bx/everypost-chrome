@@ -1,3 +1,7 @@
+import psl from 'psl'
+
+const EXCLUDED_DOMAINS = new Set(["localhost", "127.0.0.1", "mail.google.com"])
+
 console.log('hello world background todo something~')
 
 // Debugging..
@@ -7,8 +11,9 @@ chrome.storage.onChanged.addListener((changes) => {
     }
 })
 
-chrome.runtime.onMessage.addListener((message, sender, callback) => {
 
+// Message dispatch
+chrome.runtime.onMessage.addListener((message, sender, callback) => {
     switch (message.action) {
         case "check_access":
             updateStatus()
@@ -21,6 +26,14 @@ chrome.runtime.onMessage.addListener((message, sender, callback) => {
         default:
             console.log("EveryPost: unrecognized action: ", message.action)
             break;
+    }
+})
+
+// Periodic tasks
+chrome.alarms.create("clear_cache", { periodInMinutes: 360 })
+chrome.alarms.onAlarm.addListener(alarm => {
+    if (alarm.name == "clear_cache") {
+        chrome.storage.local.set({ domain_cache: {} })
     }
 })
 
@@ -37,14 +50,13 @@ chrome.windows.onCreated.addListener(() => {
 })
 
 async function checkURL(url: string) {
-    const parts = new URL(url)?.hostname?.split(".")
+    const hostname = new URL(url)?.hostname
+    const domain = psl.get(hostname)
 
-    if (parts == null || parts.length < 2) {
+    if (domain == null || EXCLUDED_DOMAINS.has(domain)) {
+        console.log("skipping domain: " + domain)
         return
     }
-
-    const domain = parts.slice(-2, parts.length).join(".")
-
 
     await chrome.storage.local.get({ domain_cache: {} })
         .then(data => {
