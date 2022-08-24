@@ -52,6 +52,7 @@ chrome.windows.onCreated.addListener(() => {
 async function checkURL(url: string) {
     const hostname = new URL(url)?.hostname
     const domain = psl.get(hostname)
+    const lookupURL = "https://everypost.in/api/links?" + new URLSearchParams({ url: url })
 
     if (domain == null || EXCLUDED_DOMAINS.has(domain)) {
         console.log("skipping domain: " + domain)
@@ -69,7 +70,7 @@ async function checkURL(url: string) {
             }
 
             // Domain is valid, or has not been checked yet..
-            fetch("https://everypost.in/api/links?" + new URLSearchParams({ url: url }))
+            fetch(lookupURL, { mode: "no-cors" })
                 .then(response => {
                     response.json().then(body => {
                         if (body[domain] == null) {
@@ -100,7 +101,7 @@ async function checkURL(url: string) {
 
 function updateStatus() {
     console.log("updating status..")
-    fetch("https://everypost.in/api/access_check")
+    fetch("https://everypost.in/users/access_check")
         .then(response => {
             if (response.status == 200) {
                 console.log("EveryPost - logged in")
