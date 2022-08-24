@@ -69,22 +69,30 @@ async function checkURL(url: string) {
             }
 
             // Domain is valid, or has not been checked yet..
-            fetch("https://api.everypost.in/links?" + new URLSearchParams({ url: url }))
+            fetch("https://everypost.in/api/links?" + new URLSearchParams({ url: url }))
                 .then(response => {
                     response.json().then(body => {
                         if (body[domain] == null) {
                             // Domain has not been checked yet..
                             console.log("Value of response:" + JSON.stringify(body))
-                            console.log("Value of item.." + body.domain)
                             data.domain_cache[domain] = (body.domain == true)
                             chrome.storage.local.set({ domain_cache: data.domain_cache })
                         }
 
+                        let links: string[]
+
                         if (response.status == 200) {
+                            // success - update badge and action
+                            links = body.links
                             console.log("EveryPost: -> Checked server, results " + response.status)
                         } else {
+                            links = []
                             console.log("EveryPost: -> Checked server, results " + response.status)
                         }
+
+                        // Store link data
+                        chrome.storage.local.set({ links: links })
+                            .then(() => { setBadgeText(links.length) })
                     })
                 })
         })
@@ -107,4 +115,12 @@ function updateStatus() {
             chrome.storage.local.set({ logged_in: false })
             console.log("EveryPost - access check error")
         })
+}
+
+// Highlight a counter as badge text
+// eslint-disable-next-line
+function setBadgeText(count: number) {
+    const tag = (count > 8) ? "9+" : `${count}`
+    chrome.action.setBadgeText({ text: (count > 0) ? tag : "" })
+    chrome.action.setBadgeBackgroundColor({ color: '#e62e00' });
 }
