@@ -1,39 +1,28 @@
-import psl from 'psl'
+// import psl from 'psl'
+import { LinkMapping } from './link_mapping'
 
-const EXCLUDED_DOMAINS = new Set(["localhost", "127.0.0.1", "mail.google.com"])
-
-console.log('hello world background todo something~')
-
-// Debugging..
-chrome.storage.onChanged.addListener((changes) => {
-    for (const [key, { oldValue, newValue }] of Object.entries(changes)) {
-        console.log(`Storage key "${key}" changed. Old: "${JSON.stringify(oldValue)}" New: "${JSON.stringify(newValue)}"`)
-    }
-})
-
+const linkMap = new LinkMapping(
+    // excluded hostnames
+    new Set(["localhost", "127.0.0.1", "mail.google.com"])
+)
 
 // Message dispatch
 chrome.runtime.onMessage.addListener((message, sender, callback) => {
     switch (message.action) {
         case "check_access":
+            console.debug("onMessage: checking sign-in state")
             updateStatus()
             callback({ success: true })
             break;
         case "check_url":
-            console.log("EveryPost: onMessage received")
-            checkURL(message.url)
+            console.debug("onMessage: checking URL")
+            linkMap.getLinks(message.url, (links) => {
+                setBadgeText(links.length)
+            })
             break
         default:
-            console.log("EveryPost: unrecognized action: ", message.action)
+            console.debug("onMessage: unrecognized action", message.action)
             break;
-    }
-})
-
-// Periodic tasks
-chrome.alarms.create("clear_cache", { periodInMinutes: 360 })
-chrome.alarms.onAlarm.addListener(alarm => {
-    if (alarm.name == "clear_cache") {
-        chrome.storage.local.set({ domain_cache: {} })
     }
 })
 
@@ -48,56 +37,6 @@ chrome.windows.onCreated.addListener(() => {
         }
     })
 })
-
-async function checkURL(url: string) {
-    const hostname = new URL(url)?.hostname
-    const domain = psl.get(hostname)
-    const lookupURL = "https://everypost.in/api/links?" + new URLSearchParams({ url: url })
-
-    if (domain == null || EXCLUDED_DOMAINS.has(domain)) {
-        console.log("skipping domain: " + domain)
-        return
-    }
-
-    await chrome.storage.local.get({ domain_cache: {} })
-        .then(data => {
-            console.log("EveryPost: Cache value: " + JSON.stringify(data.domain_cache))
-
-            if (data.domain_cache[domain] == false) {
-                // Domain is not valid ; do not check with server
-                console.log("EveryPost: cache domain is false")
-                return
-            }
-
-            // Domain is valid, or has not been checked yet..
-            fetch(lookupURL, { mode: "no-cors" })
-                .then(response => {
-                    response.json().then(body => {
-                        if (body[domain] == null) {
-                            // Domain has not been checked yet..
-                            console.log("Value of response:" + JSON.stringify(body))
-                            data.domain_cache[domain] = (body.domain == true)
-                            chrome.storage.local.set({ domain_cache: data.domain_cache })
-                        }
-
-                        let links: string[]
-
-                        if (response.status == 200) {
-                            // success - update badge and action
-                            links = body.links
-                            console.log("EveryPost: -> Checked server, results " + response.status)
-                        } else {
-                            links = []
-                            console.log("EveryPost: -> Checked server, results " + response.status)
-                        }
-
-                        // Store link data
-                        chrome.storage.local.set({ links: links })
-                            .then(() => { setBadgeText(links.length) })
-                    })
-                })
-        })
-}
 
 function updateStatus() {
     console.log("updating status..")
@@ -125,3 +64,6 @@ function setBadgeText(count: number) {
     chrome.action.setBadgeText({ text: (count > 0) ? tag : "" })
     chrome.action.setBadgeBackgroundColor({ color: '#e62e00' });
 }
+
+
+console.log('hello world background todo something~')
