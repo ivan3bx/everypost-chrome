@@ -1,13 +1,24 @@
 import psl from 'psl'
+import LRU from 'lru-cache'
 
 // LinkMapping manages lookup and local caching of link data
 export class LinkMapping {
     private excludedHosts: Set<string>
+    private linkCache: LRU<string, string[]>
+    private domainCache: LRU<string, boolean>
 
     constructor(excludedDomains: Set<string>) {
         this.excludedHosts = excludedDomains
-        this.setupTimers()
         this.setupStorageDebugging()
+
+        this.domainCache = new LRU({
+            max: 100,            // 100 domains
+            ttl: 1000 * 60 * 4   // 8 hour TTL
+        })
+        this.linkCache = new LRU({
+            max: 50,             // 50 entries
+            ttl: 1000 * 60 * 30, // 30 minute TTL
+        })
     }
 
     // Fetch associated links for a given URL, and executes the callback function
@@ -22,55 +33,35 @@ export class LinkMapping {
         const hostname = new URL(url)?.hostname
         const domain = psl.get(hostname)
 
-        if (domain == null || this.excludedHosts.has(hostname)) {
-            console.debug("hostname marked as excluded: " + hostname)
+        if (this.linkCache.has(url)) {
+            console.debug("cached result for", this.linkCache.get(url));
+            callback(this.linkCache.get(url) || [])
             return
         }
 
-        const domainCache = await this.getDomainCache()
-
-        if (domainCache[domain] != false) {
-            // Domain is valid, or has not been checked yet..
-            fetch(lookupURL, { mode: "no-cors" })
-                .then(response => {
-                    response.json().then(body => {
-                        // Domain has not been checked yet..
-                        console.log("Value of response:" + JSON.stringify(body))
-
-                        // Update domain cache
-                        domainCache[domain] = (body.domain == true)
-                        this.setDomainCache(domainCache)
-
-                        // Handle link results
-                        const links: string[] = (response.status == 200) ? body.links : []
-                        chrome.storage.local.set({ links: links }).then(() => { callback(links) })
-                    })
-                })
+        if (domain == null || this.excludedHosts.has(hostname)) {
+            console.debug("hostname excluded: " + hostname)
+            return
         }
-    }
 
-    private async getDomainCache(): Promise<{ [key: string]: boolean }> {
-        return chrome.storage.local
-            .get({ domain_cache: {} })
-            .then(data => {
-                console.log("EveryPost: Cache value: " + JSON.stringify(data.domain_cache))
-                return data.domain_cache
+        if (this.domainCache.get(domain) == false) {
+            console.debug("domain marked as not present")
+            return
+        }
+
+        // Domain valid, or has not been accessed yet
+        fetch(lookupURL, { mode: "no-cors" })
+            .then(response => {
+                response.json().then(body => {
+                    // Update domain cache
+                    this.domainCache.set(domain, (body.domain == true))
+
+                    // Handle link results
+                    const links: string[] = (response.status == 200) ? body.links : []
+                    this.linkCache.set(url, links)
+                    callback(links)
+                })
             })
-    }
-
-    private setDomainCache(newValue: { [key: string]: boolean }) {
-        chrome.storage.local.set({ domain_cache: newValue })
-    }
-
-    // periodic tasks related to link data / domain checks
-    private setupTimers() {
-        chrome.alarms.create("clear_cache", { periodInMinutes: 360 })
-
-        chrome.alarms.onAlarm.addListener(alarm => {
-            if (alarm.name == "clear_cache") {
-                chrome.storage.local.set({ domain_cache: {} })
-            }
-        })
     }
 
     // configures a listener to log changes to local storage

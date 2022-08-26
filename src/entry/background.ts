@@ -29,6 +29,14 @@ chrome.runtime.onMessage.addListener((message, sender, callback) => {
 // WIP: change badge icon based on tab
 chrome.tabs.onActivated.addListener((info) => {
     chrome.tabs.query({active: true, lastFocusedWindow: true}, (tabs) => {
+        const url = tabs[0].url
+        if (url && url.length > 0) {
+            linkMap.getLinks(url, (links) => {
+                setBadgeText(links.length)
+            })
+        } else {
+            setBadgeText(0)
+        }
         console.log("Tab activated: id:", info.tabId, "windowID:", info.windowId, "URL:", tabs[0].url)
     })
 });
