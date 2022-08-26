@@ -43,7 +43,7 @@
 </template>
 
 <script>
-import { CheckIcon } from "@heroicons/vue/outline";
+import { CheckIcon } from "@heroicons/vue/24/outline";
 
 export default {
   components: {
