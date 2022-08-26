@@ -53,6 +53,7 @@ export class LinkMapping {
         fetch(lookupURL, { mode: "no-cors" })
             .then(response => {
                 response.json().then(body => {
+                    console.debug("API response")
                     // Update domain cache
                     this.domainCache.set(domain, (body.domain == true))
 

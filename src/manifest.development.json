@@ -8,7 +8,8 @@
         "notifications",
         "cookies",
         "storage",
-        "alarms"
+        "alarms",
+        "webNavigation"
     ],
     "host_permissions": [
         "https://everypost.in/*",

@@ -26,15 +26,27 @@ chrome.runtime.onMessage.addListener((message, sender, callback) => {
     }
 })
 
+// Handle cases where sites push state via XHR (youtube, etc..)
+chrome.webNavigation.onHistoryStateUpdated.addListener((message) => {
+    console.debug("webNavigation detected history state change")
+    linkMap.getLinks(message.url, (links) => {
+        setBadgeText(links.length)
+    })
+})
+
 // WIP: change badge icon based on tab
 chrome.tabs.onActivated.addListener((info) => {
-    chrome.tabs.query({active: true, lastFocusedWindow: true}, (tabs) => {
+    chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
         const url = tabs[0].url
         if (url && url.length > 0) {
+            console.log("getting links and setting text for url:", url);
+
             linkMap.getLinks(url, (links) => {
                 setBadgeText(links.length)
             })
         } else {
+            console.log("setting badge text to zero");
+
             setBadgeText(0)
         }
         console.log("Tab activated: id:", info.tabId, "windowID:", info.windowId, "URL:", tabs[0].url)

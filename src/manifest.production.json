@@ -3,16 +3,40 @@
     "name": "EveryPost Extension",
     "description": "Bookmarks for the modern web.",
     "version": "0.0.1",
+    "permissions": [
+        "tabs",
+        "notifications",
+        "cookies",
+        "storage",
+        "webNavigation"
+    ],
+    "host_permissions": [
+        "https://everypost.in/*"
+    ],
     "background": {
         "service_worker": "/background.js"
     },
     "action": {
-        "default_popup": "popup.html"
+        "default_popup": "main.html"
+    },
+    "icons": {
+        "128": "icon_128.png"
     },
     "content_scripts": [
         {
             "matches": [
+                "https://everypost.in/*"
+            ],
+            "js": [
+                "/content_everypost.js"
+            ]
+        },
+        {
+            "matches": [
                 "<all_urls>"
+            ],
+            "exclude_matches": [
+                "https://everypost.in/*"
             ],
             "js": [
                 "/content.js"
