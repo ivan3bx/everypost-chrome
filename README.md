@@ -2,13 +2,37 @@
 
 Created With
 
+https://www.npmjs.com/package/vue-cli-plugin-chrome-extension-cli
+
 ```bash
+# example where app is 'sample-extension'
 vue create sample-extension
 
 cd sample-extension/
 
 vue add chrome-extension-cli
 ```
+
+## Testing chrome extension in-browser
+
+Default route will no longer load. `vuejs.config.js` maps each component
+in `src/entry/..` into its own page.
+
+```js
+const chromeName = getEntryFile(path.resolve(`src/entry`))
+// ...
+chromeName.forEach((name) => {
+    // ...
+    pages[fileName] = {
+        entry: `src/entry/${name}`,
+        template: 'public/index.html',
+        filename: `${fileName}.html`
+    }
+})
+```
+
+Therefore, to test `src/entry/main.ts` (or any file that mounts '#app' via `createApp()`)
+the URL looks like:  http://localhost:8080/main.html
 
 ## Project setup
 
