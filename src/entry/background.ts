@@ -26,6 +26,14 @@ chrome.runtime.onMessage.addListener((message, sender, callback) => {
     }
 })
 
+// WIP: change badge icon based on tab
+chrome.tabs.onActivated.addListener((info) => {
+    chrome.tabs.query({active: true, lastFocusedWindow: true}, (tabs) => {
+        console.log("Tab activated: id:", info.tabId, "windowID:", info.windowId, "URL:", tabs[0].url)
+    })
+});
+
+
 // Triggering access check on window creation is better than 'onStartup' given that Chrome
 // may exist in the background, meaning 'onStartup' never invoked.
 // Creating a window happens both on startup as well as when user activates background app.
