@@ -19,7 +19,7 @@ chromeName.forEach((name) => {
   const fileName = name.replace('.' + fileExtension, '')
   pages[fileName] = {
     entry: `src/entry/${name}`,
-    template: 'public/index.html',
+    template: 'public/_base.html',
     filename: `${fileName}.html`
   }
 })
@@ -39,7 +39,11 @@ module.exports = {
           },
           {
             from: path.resolve(`public/`),
-            to: `${path.resolve('dist')}/`
+            to: `${path.resolve('dist')}/`,
+            globOptions: {
+              dot: true,
+              ignore: ["**/_*.html", "**/index.html"],
+            },
           }
         ]
       }

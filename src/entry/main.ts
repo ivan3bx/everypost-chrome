@@ -17,7 +17,17 @@ const router = createRouter({
 //
 // Initialize popup contents based on logged-in state
 //
-chrome.storage.local.get({ logged_in: false }, (data) => {
-  const component = data.logged_in ? Actions : Popup
-  createApp(component).use(router).mount("#app")
-})
+if (chrome.storage) {
+  //
+  // This only runs in context of chrome extension
+  //
+  chrome.storage.local.get({ logged_in: false }, (data) => {
+    const component = data.logged_in ? Actions : Popup
+    createApp(component).use(router).mount("#app")
+  })
+} else {
+  //
+  // Debugging component in normal web context
+  //
+  createApp(Popup).use(router).mount("#app")
+}
