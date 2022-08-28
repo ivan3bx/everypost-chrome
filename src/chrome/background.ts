@@ -32,6 +32,9 @@ chrome.runtime.onMessage.addListener((message, sender, callback) => {
             updateStatus()
             callback({ success: true })
             break;
+        case "logout":
+            setLoginStatus(false)
+            break
         case "check_url":
             console.debug("onMessage: checking URL")
             updateWithTab(sender.tab)
@@ -81,21 +84,26 @@ chrome.windows.onCreated.addListener(() => {
     })
 })
 
+function setLoginStatus(logged_in: boolean) {
+    chrome.storage.local.set({ logged_in: logged_in })
+
+    if (logged_in) {
+        console.log("EveryPost - logged in")
+        chrome.action.setPopup({ popup: "actions.html" })
+    } else {
+        console.log("EveryPost - logged out")
+        chrome.action.setPopup({ popup: "main.html" })
+    }
+}
+
 function updateStatus() {
     console.log("updating status..")
     fetch("https://everypost.in/users/access_check")
         .then(response => {
-            if (response.status == 200) {
-                console.log("EveryPost - logged in")
-                chrome.storage.local.set({ logged_in: true })
-            } else {
-                console.log("EveryPost - logged out")
-                chrome.storage.local.set({ logged_in: false })
-            }
+            setLoginStatus(response.status == 200)
         })
         .catch(() => {
-            // user is logged out
-            chrome.storage.local.set({ logged_in: false })
+            setLoginStatus(false)
             console.log("EveryPost - access check error")
         })
 }
@@ -110,3 +118,5 @@ function setBadgeText(count: number, tabId?: number) {
 
 
 console.log('EveryPost says hi!')
+
+updateStatus()
