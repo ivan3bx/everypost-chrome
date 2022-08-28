@@ -16,10 +16,14 @@ function updateWithTab(tab?: chrome.tabs.Tab) {
 
     if (url && url.length > 0) {
         console.log("onFocusChanged: getting links and setting text for url:", url);
-        linkMap.getLinks(url, (links) => { setBadgeText(links.length, tabId) })
+        linkMap.getLinks(url, (links) => {
+            setBadgeText(links.length, tabId)
+            chrome.storage.local.set({links: links})
+        })
     } else {
         console.log("onFocusChanged: setting badge text to zero");
         setBadgeText(0, tabId)
+        chrome.storage.local.set({links: []})
     }
 
 }

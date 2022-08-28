@@ -41,11 +41,13 @@ export class LinkMapping {
 
         if (domain == null || this.excludedHosts.has(hostname)) {
             console.debug("hostname excluded: " + hostname)
+            callback([])
             return
         }
 
         if (this.domainCache.get(domain) == false) {
             console.debug("domain marked as not present")
+            callback([])
             return
         }
 
