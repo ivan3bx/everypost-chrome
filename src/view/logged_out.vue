@@ -49,7 +49,7 @@ export default {
   components: {
     CheckIcon,
   },
-  name: "popupView",
+  name: "loggedOutView",
   methods: {
     authenticate: () => {
       chrome.tabs.create({

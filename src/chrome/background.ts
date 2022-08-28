@@ -89,10 +89,10 @@ function setLoginStatus(logged_in: boolean) {
 
     if (logged_in) {
         console.log("EveryPost - logged in")
-        chrome.action.setPopup({ popup: "actions.html" })
+        chrome.action.setPopup({ popup: "logged_in.html" })
     } else {
         console.log("EveryPost - logged out")
-        chrome.action.setPopup({ popup: "main.html" })
+        chrome.action.setPopup({ popup: "logged_out.html" })
     }
 }
 

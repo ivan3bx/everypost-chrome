@@ -20,7 +20,7 @@
 
 <script>
 export default {
-  name: "actionsView",
+  name: "loggedInView",
   data() {
     return {
       msg: "Do stuff..",

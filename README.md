@@ -33,7 +33,7 @@ chromeName.forEach((name) => {
 ```
 
 Therefore, to test `src/entry/main.ts` (or any file that mounts '#app' via `createApp()`)
-the URL looks like:  http://localhost:8080/main.html
+the URL looks like:  http://localhost:8080/logged_out.html
 
 ## Project setup
 

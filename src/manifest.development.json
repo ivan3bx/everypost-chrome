@@ -19,7 +19,7 @@
         "service_worker": "/background.js"
     },
     "action": {
-        "default_popup": "main.html"
+        "default_popup": "logged_out.html"
     },
     "icons": {
         "128": "icon_128.png"
