@@ -1,18 +1,20 @@
-const url = document.querySelector("link[rel='canonical']")?.getAttribute("href");
+chrome.runtime.onMessage.addListener((msg, sender, callback) => {
+    if (sender.id == chrome.runtime.id && msg == "check_page") {
+        const descQuery = "meta[name='twitter:description'],[property='og:description'],[name='description']";
+        const urlQuery = "link[rel='canonical']";
+        const iconQuery = "link[rel*='icon']";
+        const titleQuery = "meta[name='twitter:title'],[property='og:title']";
 
-if (url) {
-  console.log("EveryPost: Using canonical URL");
-  chrome.runtime.sendMessage({ action: "check_url", url: url });
-} else {
-  console.log("EveryPost: Using browser URL");
-  chrome.runtime.sendMessage({ action: "check_url", url: window.location.href });
-}
+        const canonicalURL = document.querySelector(urlQuery)?.getAttribute("href");
+        const favIcon = document.querySelector(iconQuery)?.getAttribute("href");
+        const title = document.querySelector(titleQuery)?.getAttribute("content");
+        const desc = document.querySelector(descQuery)?.getAttribute("content");
 
-// parse page metadata
-const favIcon = document.querySelector("link[rel*='icon']")?.getAttribute("href");
-
-if (favIcon) {
-    const url = new URL(favIcon, window.location.origin)
-    console.log("Found icon: ", url);
-    chrome.storage.local.set({siteIcon: url.href})
-}
+        callback({
+            url: canonicalURL || window.location.href,
+            iconURL: new URL(favIcon || "/favicon.ico", window.location.origin).href,
+            title: title || document.querySelector("title")?.text || document.querySelector("title")?.text,
+            description: desc || "",
+        });
+    }
+});

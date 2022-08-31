@@ -8,23 +8,31 @@ const linkMap = new LinkMapping(
 
 function updateWithTab(tab?: chrome.tabs.Tab) {
     if (tab == null) {
-        console.warn("update passed a null tab instance ; ignoring")
+        console.warn("updateTab() : passed a null tab instance")
         return
     }
-    const url = tab.url
     const tabId = tab.id
 
-    if (url && url.length > 0) {
-        console.log("onFocusChanged: getting links and setting text for url:", url);
-        linkMap.getLinks(url, (links) => {
-            setBadgeText(links.length, tabId)
-            chrome.storage.local.set({links: links})
+    if (tabId) {
+        chrome.tabs.sendMessage(tabId, "check_page", (data) => {
+            console.log("Sent message and received response:", data)
+            if (!data) {
+                // content script did not send data; fallback to URL only
+                const pageURL = (tab.url?.startsWith("chrome://") ? "" : tab.url)
+                chrome.storage.local.set({pageData: {url: pageURL}, links: []})
+                return
+            }
+            chrome.storage.local.set({pageData: data})
+                linkMap.getLinks(data.url, (links) => {
+                    setBadgeText(links.length, tabId)
+                    chrome.storage.local.set({links: links})
+                })
         })
     } else {
         console.log("onFocusChanged: setting badge text to zero");
         setBadgeText(0, tabId)
-        chrome.storage.local.set({links: []})
-    }
+        chrome.storage.local.set({pageData: {}, links: []})
+    }        
 
 }
 
@@ -56,7 +64,7 @@ chrome.webNavigation.onHistoryStateUpdated.addListener((message) => {
 })
 
 // Handle window activation events
-chrome.windows.onFocusChanged.addListener(windowId => {
+chrome.windows.onFocusChanged.addListener(windowId => {    
     if (windowId == chrome.windows.WINDOW_ID_NONE) {
         // all windows lost focus ; no-op
     } else {
@@ -74,6 +82,17 @@ chrome.tabs.onActivated.addListener((info) => {
         console.log("Tab activated: id:", info.tabId, "windowID:", info.windowId, "URL:", tabs[0].url)
     })
 });
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+    // check 'status' to filter unrealted updates (eg. iframes, as seen on youtube)
+    if (changeInfo.status == 'complete') {
+        chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
+            updateWithTab(tabs[0])
+            console.log("Tab activated: id:", tabId, "windowID:", tabs[0].windowId, "URL:", tabs[0].url)
+        })
+    }
+});
+
 
 
 // Triggering access check on window creation is better than 'onStartup' given that Chrome

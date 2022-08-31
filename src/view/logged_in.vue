@@ -158,7 +158,7 @@
 </template>
 
 <script>
-import { fetchLinks, fetchIcon } from "../actions";
+import { fetchLinks, fetchPageData } from "../actions";
 import Links from "./links.vue";
 
 export default {
@@ -189,13 +189,28 @@ export default {
         t.current = i == newIndex;
       }
     },
+    refreshContent: function() {
+      fetchPageData().then(data => {
+      const page = data
+      console.log("Setting page data:", page);
+      this.url = page.url
+      this.site_icon = page.iconURL
+      this.title = page.title
+      this.description = page.description
+
+      const elem = document.createElement("img");
+      elem.setAttribute("src", page.iconURL);
+      elem.classList = "h-10 w-10";
+
+      const imageHolder = document.querySelector("#image-holder");
+      imageHolder.replaceChildren(elem);
+      console.log("replaced icon with image:", imageHolder.innerHTML)
+
+      })
+    }
   },
   beforeMount() {
-    // Parse page
-    fetchIcon().then((data) => {
-      console.log("Setting icon:", data);
-      this.site_icon = data;
-    });
+    this.refreshContent()
 
     // Fetch links
     fetchLinks().then((data) => {
@@ -209,6 +224,9 @@ export default {
         document.querySelector("#tab-1").classList.remove("pointer-events-none", "cursor-default");
       }
     });
+  },
+  beforeUpdate() {
+    this.refreshContent()
   },
   mounted() {
     // initial focus on title
