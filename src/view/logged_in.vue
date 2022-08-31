@@ -182,11 +182,11 @@ export default {
                 { name: "Related Links", href: "#", active: true, count: "", current: false },
             ],
             links: [],
-            title: "MetaFilter | Community Weblog",
-            url: "https://www.metafilter.com/test",
-            description: "MetaFilter is a community weblog that anyone can contribute a link or comment to.",
-            site_icon: "https://metafilter.com/apple-touch-icon.png",
-            tagList: "xx",
+            title: "Untitled",
+            url: "",
+            description: "",
+            site_icon: "",
+            tagList: "",
         }
     },
     methods: {
@@ -205,15 +205,18 @@ export default {
                 this.site_icon = page.iconURL
                 this.title = page.title
                 this.description = page.description
+            })
+        },
+        refreshIcon: function () {
+            const elem = document.createElement("img")
+            elem.setAttribute("src", this.site_icon)
+            elem.classList = "h-10 w-10"
 
-                const elem = document.createElement("img")
-                elem.setAttribute("src", page.iconURL)
-                elem.classList = "h-10 w-10"
-
-                const imageHolder = document.querySelector("#image-holder")
+            const imageHolder = document.querySelector("#image-holder")
+            if (imageHolder) {
                 imageHolder.replaceChildren(elem)
                 console.log("replaced icon with image:", imageHolder.innerHTML)
-            })
+            }
         },
     },
     beforeMount() {
@@ -232,8 +235,8 @@ export default {
             }
         })
     },
-    beforeUpdate() {
-        this.refreshContent()
+    updated() {
+        this.refreshIcon()
     },
     mounted() {
         // initial focus on title

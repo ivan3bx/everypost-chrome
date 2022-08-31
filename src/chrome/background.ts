@@ -21,10 +21,10 @@ function updateWithTab(tab?: chrome.tabs.Tab) {
                 chrome.storage.local.set({ pageData: { url: pageURL }, links: [] })
                 return
             }
-            chrome.storage.local.set({ pageData: data })
+
             linkMap.getLinks(data.url, (links) => {
                 setBadgeText(links.length, tabId)
-                chrome.storage.local.set({ links: links })
+                chrome.storage.local.set({ links: links, pageData: data })
             })
         })
     } else {
