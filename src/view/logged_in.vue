@@ -9,6 +9,7 @@
               v-for="(tab, index) in tabs"
               :key="tab.name"
               v-on:click="activateTab(index)"
+              v-bind:id="`tab-${index}`"
               href="#"
               :class="[
                 tab.current
@@ -22,7 +23,7 @@
                 v-if="tab.count"
                 :class="[
                   tab.current ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-900',
-                  'ml-3 py-0.5 px-2 rounded-full text-xs font-medium inline-block',
+                  'ml-2 py-0.5 px-2 rounded-full text-xs font-medium inline-block',
                 ]"
                 >{{ tab.count }}</span
               >
@@ -156,13 +157,6 @@
   </div>
 </template>
 
-<script setup>
-const tabs = [
-  { name: "Add Bookmark", href: "#", current: true },
-  { name: "Related Links", href: "#", count: "", current: false },
-];
-</script>
-
 <script>
 import { fetchLinks, fetchIcon } from "../actions";
 import Links from "./links.vue";
@@ -175,6 +169,10 @@ export default {
   data() {
     return {
       activeTab: 0,
+      tabs: [
+        { name: "Add Bookmark", href: "#", active: true, current: true },
+        { name: "Related Links", href: "#", active: true, count: "", current: false },
+      ],
       links: [],
       title: "MetaFilter | Community Weblog",
       url: "https://www.metafilter.com/test",
@@ -202,6 +200,14 @@ export default {
     // Fetch links
     fetchLinks().then((data) => {
       this.links = data;
+      this.tabs[1].active = (this.links.length > 0)
+      this.tabs[1].count = (this.links.length > 0) ? this.links.length : ""
+
+      if (this.links.length == 0) {
+        document.querySelector("#tab-1").classList.add("pointer-events-none", "cursor-default");
+      } else {
+        document.querySelector("#tab-1").classList.remove("pointer-events-none", "cursor-default");
+      }
     });
   },
   mounted() {
