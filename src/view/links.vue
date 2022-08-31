@@ -1,8 +1,6 @@
 <template>
-  <div class="py-4">
-    <p class="mb-1 text-base font-semibold text-gray-600">Related links..</p>
-
-    <ul class="px-4 list-disc text-sm marker:text-gray-600" v-for="link in links" :key="link.publishDate">
+  <div class="py-2">
+    <ul class="px-6 list-disc text-sm marker:text-gray-600" v-for="link in links" :key="link.publishDate">
       <li>
         <a v-bind:href="link.url" target="_blank" v-bind:title="`${link.title} - ${link.site}`" class="group">
           <div class="flex flex-col pb-2">
@@ -37,8 +35,10 @@ export default {
         return formatter.format(Math.round(-deltaDays / 30), "months");
       } else if (deltaDays > 7) {
         return formatter.format(Math.round(-deltaDays / 7), "weeks");
-      } else {
+      } else if (Math.round(-deltaDays) > 0) {
         return formatter.format(Math.round(-deltaDays), "days");
+      } else {
+        return "Today"
       }
     },
   },

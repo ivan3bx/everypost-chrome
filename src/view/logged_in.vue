@@ -1,5 +1,5 @@
 <template>
-  <div class="main_app p-2 bg-gradient-to-br bg-white" style="width: 450px">
+  <div class="md:border-2 md:border-black md:m-2 main_app px-2 bg-white" style="width: 450px">
     <div class="w-full overflow-hidden">
       <div class="block">
         <div class="border-b border-gray-200">
@@ -12,16 +12,16 @@
               href="#"
               :class="[
                 tab.current
-                  ? 'border-indigo-500 text-indigo-600'
+                  ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-200',
-                'whitespace-nowrap flex py-4 px-1 border-b-2 font-medium text-sm',
+                'whitespace-nowrap flex pt-4 pb-2 px-1 border-b-2 font-medium text-sm',
               ]"
               :aria-current="tab.current ? 'page' : undefined">
               {{ tab.name }}
               <span
                 v-if="tab.count"
                 :class="[
-                  tab.current ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-900',
+                  tab.current ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-900',
                   'ml-3 py-0.5 px-2 rounded-full text-xs font-medium inline-block',
                 ]"
                 >{{ tab.count }}</span
@@ -62,7 +62,7 @@
                       placeholder="Enter a title..."
                       autocomplete="off"
                       autofocus="autofocus"
-                      class="resize-none shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full text-sm tracking-tight leading-5 text-gray-900 border-gray-300 rounded-md"
+                      class="resize-none shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full text-sm tracking-tight leading-5 text-gray-900 border-gray-300 rounded-md"
                       type="text" />
                     <input
                       id="b_url"
@@ -85,7 +85,7 @@
                           v-model="description"
                           rows="3"
                           autocomplete="off"
-                          class="resize-none shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full text-sm border border-gray-300 rounded-md"
+                          class="resize-none shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full text-sm border border-gray-300 rounded-md"
                           onfocus="this.select();" />
                       </dd>
                     </div>
@@ -99,7 +99,7 @@
                           id="tag-editor-field"
                           data-edit-target="tagList"
                           v-bind:value="tagList"
-                          class="hidden my-3 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 w-full sm:text-sm border-gray-300 rounded-md"
+                          class="hidden my-3 shadow-sm focus:ring-blue-500 focus:border-blue-500 w-full sm:text-sm border-gray-300 rounded-md"
                           autocomplete="off"
                           autocapitalize="off"
                           autocorrect="off"
@@ -113,7 +113,7 @@
                               name="new-tag"
                               id="new-tag"
                               placeholder="+ add tag.."
-                              class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                              class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                               autocomplete="off"
                               autocapitalize="off"
                               autocorrect="off"
@@ -150,21 +150,21 @@
         </div>
       </div>
     </div>
-    <div v-if="activeTab == 1">
-      <Links :links="links" :collapsed="true" />
+    <div class="py-4" v-if="activeTab == 1">
+      <Links class="px-2" :links="links" :collapsed="true" />
     </div>
   </div>
 </template>
 
 <script setup>
 const tabs = [
-  { name: "New Bookmark", href: "#", current: true },
-  { name: "Related Links", href: "#", count: "6", current: false },
+  { name: "Add Bookmark", href: "#", current: true },
+  { name: "Related Links", href: "#", count: "", current: false },
 ];
 </script>
 
 <script>
-import { fetchLinks } from "../actions";
+import { fetchLinks, fetchIcon } from "../actions";
 import Links from "./links.vue";
 
 export default {
@@ -193,6 +193,13 @@ export default {
     },
   },
   beforeMount() {
+    // Parse page
+    fetchIcon().then((data) => {
+      console.log("Setting icon:", data);
+      this.site_icon = data;
+    });
+
+    // Fetch links
     fetchLinks().then((data) => {
       this.links = data;
     });
@@ -210,7 +217,7 @@ export default {
 
       const imageHolder = document.querySelector("#image-holder");
       imageHolder.replaceChildren(elem);
-    }, 200);
+    }, 100);
   },
 };
 </script>

@@ -1,3 +1,13 @@
+export async function fetchIcon() {
+  if (chrome.storage) {
+    return chrome.storage.local.get({ siteIcon: "#" }).then((data) => {
+      return data.siteIcon;
+    });
+  } else {
+    return "/favicon.ico";
+  }
+}
+
 // fetchLinks returns a set of links from local storage
 export async function fetchLinks() {
   if (chrome.storage) {

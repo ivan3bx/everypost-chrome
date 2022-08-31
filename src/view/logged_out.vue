@@ -6,7 +6,10 @@
           <h2 class="text-xl font-bold text-gray-900">EveryPost <span class="text-sm">(for chrome)</span></h2>
         </div>
 
-        <Links :links="links" v-if="links.length > 0" />
+        <div v-if="links.length > 0">
+          <p class="pt-4 text-base font-semibold text-gray-600">Related links..</p>
+          <Links :links="links" v-if="links.length > 0" />
+        </div>
 
         <div class="my-2 px-3 py-2 bg-blue-100 border-blue-300 border flex space-x-4 shadow-sm rounded-sm">
           <InformationCircleIcon class="text-blue-600 h-8 w-8" />
