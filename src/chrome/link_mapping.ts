@@ -1,5 +1,5 @@
-import psl from 'psl'
-import LRU from 'lru-cache'
+import psl from "psl"
+import LRU from "lru-cache"
 
 // LinkMapping manages lookup and local caching of link data
 export class LinkMapping {
@@ -9,14 +9,14 @@ export class LinkMapping {
 
     constructor(excludedDomains: Set<string>) {
         this.excludedHosts = excludedDomains
-        this.setupStorageDebugging()
+        this.installDebugHooks()
 
         this.domainCache = new LRU({
-            max: 100,            // 100 domains
-            ttl: 1000 * 60 * 4   // 8 hour TTL
+            max: 100, // 100 domains
+            ttl: 1000 * 60 * 4, // 8 hour TTL
         })
         this.linkCache = new LRU({
-            max: 50,             // 50 entries
+            max: 50, // 50 entries
             ttl: 1000 * 60 * 30, // 30 minute TTL
         })
     }
@@ -25,16 +25,16 @@ export class LinkMapping {
     // on successful result.
     //
     // Callback will not fire if URL's domain has already been checked (and deemed
-    // not to have any indexed links). 
-    // 
+    // not to have any indexed links).
+    //
     // Callback will be invoked with empty [] results, or with cached results.
-    async getLinks(url: string, callback: ((links: string[]) => void)) {
+    async getLinks(url: string, callback: (links: string[]) => void) {
         const lookupURL = "https://everypost.in/api/links?" + new URLSearchParams({ url: url })
         const hostname = new URL(url)?.hostname
         const domain = psl.get(hostname)
 
         if (this.linkCache.has(url)) {
-            console.debug("cached result for", this.linkCache.get(url));
+            console.debug("cached result for", this.linkCache.get(url))
             callback(this.linkCache.get(url) || [])
             return
         }
@@ -52,29 +52,28 @@ export class LinkMapping {
         }
 
         // Domain valid, or has not been accessed yet
-        fetch(lookupURL, { mode: "no-cors" })
-            .then(response => {
-                response.json().then(body => {
-                    console.debug("API response")
-                    // Update domain cache
-                    this.domainCache.set(domain, (body.domain == true))
+        fetch(lookupURL, { mode: "no-cors" }).then((response) => {
+            response.json().then((body) => {
+                console.debug("API response")
+                // Update domain cache
+                this.domainCache.set(domain, body.domain == true)
 
-                    // Handle link results
-                    const links: string[] = (response.status == 200) ? body.links : []
-                    this.linkCache.set(url, links)
-                    callback(links)
-                })
+                // Handle link results
+                const links: string[] = response.status == 200 ? body.links : []
+                this.linkCache.set(url, links)
+                callback(links)
             })
+        })
     }
 
     // configures a listener to log changes to local storage
-    private setupStorageDebugging() {
-        chrome.storage.onChanged.addListener((changes) => {
-            for (const [key, { oldValue, newValue }] of Object.entries(changes)) {
-                const orig = JSON.stringify(oldValue)
-                const updated = JSON.stringify(newValue)
-                console.log(`Storage key "${key}" changed. Old: "${orig}" New: "${updated}"`)
-            }
-        })
+    private installDebugHooks() {
+        // chrome.storage.onChanged.addListener((changes) => {
+        //     for (const [key, { oldValue, newValue }] of Object.entries(changes)) {
+        //         const orig = JSON.stringify(oldValue)
+        //         const updated = JSON.stringify(newValue)
+        //         console.log(`Storage key "${key}" changed. Old: "${orig}" New: "${updated}"`)
+        //     }
+        // })
     }
 }

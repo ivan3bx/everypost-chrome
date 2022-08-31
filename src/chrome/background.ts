@@ -1,5 +1,5 @@
 // import psl from 'psl'
-import { LinkMapping } from './link_mapping'
+import { LinkMapping } from "./link_mapping"
 
 const linkMap = new LinkMapping(
     // excluded hostnames
@@ -8,63 +8,60 @@ const linkMap = new LinkMapping(
 
 function updateWithTab(tab?: chrome.tabs.Tab) {
     if (tab == null) {
-        console.warn("updateTab() : passed a null tab instance")
+        console.warn("updateTab() : null tab")
         return
     }
     const tabId = tab.id
 
     if (tabId) {
         chrome.tabs.sendMessage(tabId, "check_page", (data) => {
-            console.log("Sent message and received response:", data)
             if (!data) {
                 // content script did not send data; fallback to URL only
-                const pageURL = (tab.url?.startsWith("chrome://") ? "" : tab.url)
-                chrome.storage.local.set({pageData: {url: pageURL}, links: []})
+                const pageURL = tab.url?.startsWith("chrome://") ? "" : tab.url
+                chrome.storage.local.set({ pageData: { url: pageURL }, links: [] })
                 return
             }
-            chrome.storage.local.set({pageData: data})
-                linkMap.getLinks(data.url, (links) => {
-                    setBadgeText(links.length, tabId)
-                    chrome.storage.local.set({links: links})
-                })
+            chrome.storage.local.set({ pageData: data })
+            linkMap.getLinks(data.url, (links) => {
+                setBadgeText(links.length, tabId)
+                chrome.storage.local.set({ links: links })
+            })
         })
     } else {
-        console.log("onFocusChanged: setting badge text to zero");
         setBadgeText(0, tabId)
-        chrome.storage.local.set({pageData: {}, links: []})
-    }        
-
+        chrome.storage.local.set({ pageData: {}, links: [] })
+    }
 }
 
 // Message dispatch
 chrome.runtime.onMessage.addListener((message, sender, callback) => {
     switch (message.action) {
         case "check_access":
-            console.debug("onMessage: checking sign-in state")
             updateStatus()
             callback({ success: true })
-            break;
+            break
         case "logout":
             setLoginStatus(false)
             break
         case "check_url":
-            console.debug("onMessage: checking URL")
             updateWithTab(sender.tab)
             break
         default:
-            console.debug("onMessage: unrecognized action", message.action)
-            break;
+            console.warn("message listener: unrecognized action", message.action)
+            break
     }
 })
 
 // Handle cases where sites push state via XHR (youtube, etc..)
 chrome.webNavigation.onHistoryStateUpdated.addListener((message) => {
-    console.debug("webNavigation history state updated")
-    chrome.tabs.get(message.tabId, (tab) => { updateWithTab(tab) })
+    console.debug("history state update")
+    chrome.tabs.get(message.tabId, (tab) => {
+        updateWithTab(tab)
+    })
 })
 
 // Handle window activation events
-chrome.windows.onFocusChanged.addListener(windowId => {    
+chrome.windows.onFocusChanged.addListener((windowId) => {
     if (windowId == chrome.windows.WINDOW_ID_NONE) {
         // all windows lost focus ; no-op
     } else {
@@ -76,30 +73,27 @@ chrome.windows.onFocusChanged.addListener(windowId => {
 
 // Handle tab activation events
 chrome.tabs.onActivated.addListener((info) => {
-    console.debug("Tab activated..")
+    console.debug("tab activated:", info.tabId)
     chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
         updateWithTab(tabs[0])
-        console.log("Tab activated: id:", info.tabId, "windowID:", info.windowId, "URL:", tabs[0].url)
     })
-});
+})
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
     // check 'status' to filter unrealted updates (eg. iframes, as seen on youtube)
-    if (changeInfo.status == 'complete') {
+    if (changeInfo.status == "complete") {
+        console.debug("tab updated")
         chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
             updateWithTab(tabs[0])
-            console.log("Tab activated: id:", tabId, "windowID:", tabs[0].windowId, "URL:", tabs[0].url)
         })
     }
-});
-
-
+})
 
 // Triggering access check on window creation is better than 'onStartup' given that Chrome
 // may exist in the background, meaning 'onStartup' never invoked.
 // Creating a window happens both on startup as well as when user activates background app.
 chrome.windows.onCreated.addListener(() => {
-    chrome.windows.getAll(windows => {
+    chrome.windows.getAll((windows) => {
         // TODO: enable in prod
         if (windows.length == 1) {
             updateStatus()
@@ -111,35 +105,31 @@ function setLoginStatus(logged_in: boolean) {
     chrome.storage.local.set({ logged_in: logged_in })
 
     if (logged_in) {
-        console.log("EveryPost - logged in")
         chrome.action.setPopup({ popup: "logged_in.html" })
     } else {
-        console.log("EveryPost - logged out")
         chrome.action.setPopup({ popup: "logged_out.html" })
     }
 }
 
 function updateStatus() {
-    console.log("updating status..")
+    console.debug("updateStatus()")
     fetch("https://everypost.in/users/access_check")
-        .then(response => {
+        .then((response) => {
             setLoginStatus(response.status == 200)
         })
         .catch(() => {
             setLoginStatus(false)
-            console.log("EveryPost - access check error")
+            console.warn("updateStatus() - access check error")
         })
 }
 
 // Highlight a counter as badge text
 // eslint-disable-next-line
 function setBadgeText(count: number, tabId?: number) {
-    const tag = (count > 8) ? "9+" : `${count}`
-    chrome.action.setBadgeText({ text: (count > 0) ? tag : "", tabId: tabId })
-    chrome.action.setBadgeBackgroundColor({ color: '#e62e00' });
+    const tag = count > 8 ? "9+" : `${count}`
+    chrome.action.setBadgeText({ text: count > 0 ? tag : "", tabId: tabId })
+    chrome.action.setBadgeBackgroundColor({ color: "#e62e00" })
 }
 
-
-console.log('EveryPost says hi!')
-
+// initialization
 updateStatus()
