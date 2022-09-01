@@ -11,7 +11,7 @@ chrome.runtime.onMessage.addListener((msg, sender, callback) => {
         const desc = document.querySelector(descQuery)?.getAttribute("content")
 
         callback({
-            url: canonicalURL || window.location.href,
+            url: new URL(canonicalURL || window.location.href, window.location.origin).href,
             iconURL: new URL(favIcon || "/favicon.ico", window.location.origin).href,
             title: title || document.querySelector("title")?.text || document.querySelector("title")?.text,
             description: desc || "",

@@ -36,18 +36,8 @@
         <div v-if="activeTab == 0">
             <div class="min-h-full flex items-center justify-center">
                 <div class="w-full">
-                    <form action="https://everypost.in/quick" accept-charset="UTF-8" method="post">
-                        <input
-                            type="hidden"
-                            name="authenticity_token"
-                            value="GvpA6xdEE64aDLwXMy9yvPR0Gup17U28cfwwDUdBjBJugvfIinkQCLtysd0rNbjokdzm-N0KL_obIJKOVr995w"
-                            autocomplete="off" />
-                        <input
-                            name="source_url"
-                            autocomplete="off"
-                            type="hidden"
-                            value="https://www.metafilter.com/"
-                            id="b_url" />
+                    <form ref="form" accept-charset="UTF-8" method="post">
+                        <input name="source_url" autocomplete="off" type="hidden" v-bind:value="url" id="b_url" />
                         <div>
                             <div class="overflow-hidden">
                                 <div class="flex space-x-2 px-4 pt-5 pb-3 sm:py-5 sm:px-6">
@@ -103,7 +93,6 @@
                                                 <input
                                                     placeholder="enter tag list.."
                                                     id="tag-editor-field"
-                                                    data-edit-target="tagList"
                                                     v-bind:value="tagList"
                                                     class="hidden my-3 shadow-sm focus:ring-blue-500 focus:border-blue-500 w-full sm:text-sm border-gray-300 rounded-md"
                                                     autocomplete="off"
@@ -122,13 +111,8 @@
                                                             class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                                                             autocomplete="off"
                                                             autocapitalize="off"
-                                                            autocorrect="off"
-                                                            data-edit-target="tagInput"
-                                                            data-action="keydown->edit#tagInput search->edit#fetchResults keyup->edit#fetchResults blur->edit#resetSearchResults"
-                                                            data-url="/tags/new" />
-                                                        <div
-                                                            data-edit-target="searchResults"
-                                                            class="absolute w-full bg-white z-10 mb-3"></div>
+                                                            autocorrect="off" />
+                                                        <div class="absolute w-full bg-white z-10 mb-3"></div>
                                                         <div id="tag-list" class="overflow-hidden w-full py-4">
                                                             <ul class="flex flex-wrap"></ul>
                                                         </div>
@@ -141,11 +125,9 @@
                                             <dd
                                                 class="ml-auto flex space-x-4 mt-1 text-sm text-gray-900 sm:mt-0 col-span-3">
                                                 <button
+                                                    v-on:click="submit"
                                                     name="button"
                                                     type="submit"
-                                                    data-action="edit#save"
-                                                    data-edit-target="saveBtn"
-                                                    data-disable="true"
                                                     class="inline-flex items-center shadow-sm px-6 py-1.5 border border-blue-600 text-sm leading-5 font-medium rounded-full text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                                     Save
                                                 </button>
@@ -217,6 +199,23 @@ export default {
                 imageHolder.replaceChildren(elem)
                 console.log("replaced icon with image:", imageHolder.innerHTML)
             }
+        },
+        submit: function (e) {
+            console.log("submitting bookmark ", this.$refs.form)
+            e.preventDefault()
+            chrome.runtime
+                ?.sendMessage({
+                    action: "save",
+                    bookmark: {
+                        url: this.url,
+                        title: this.title,
+                        description: this.description,
+                        tagList: this.tagList,
+                    },
+                })
+                .then(() => {
+                    window.close()
+                })
         },
     },
     beforeMount() {

@@ -40,6 +40,11 @@ chrome.runtime.onMessage.addListener((message, sender, callback) => {
             updateStatus()
             callback({ success: true })
             break
+        case "save":
+            saveBookmark(message.bookmark).then(() => {
+                callback({ success: true })
+            })
+            break
         case "logout":
             setLoginStatus(false)
             break
@@ -115,11 +120,42 @@ function updateStatus() {
     console.debug("updateStatus()")
     fetch("https://everypost.in/users/access_check")
         .then((response) => {
+            if (response.status == 200) {
+                response.json().then((value) => {
+                    chrome.storage.local.set({ auth_token: value.auth_token })
+                })
+            }
             setLoginStatus(response.status == 200)
         })
         .catch(() => {
             setLoginStatus(false)
             console.warn("updateStatus() - access check error")
+        })
+}
+
+async function saveBookmark(data: object) {
+    const token = await chrome.storage.local.get({ auth_token: "" }).then((data) => {
+        return data.auth_token
+    })
+
+    const headers = {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+    }
+
+    const reqData = {
+        method: "POST",
+        headers: headers,
+        body: JSON.stringify(data),
+    }
+
+    fetch("https://everypost.in/api/bookmarks", reqData)
+        .then((response) => {
+            console.log("saveBookmark(): response", response.status)
+        })
+        .catch((reason) => {
+            console.warn("saveBookmark(): error ", reason)
         })
 }
 
