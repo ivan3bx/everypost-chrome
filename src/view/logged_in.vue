@@ -54,7 +54,7 @@
                                     <div class="w-full flex-col space-y-1">
                                         <input
                                             id="b_title"
-                                            v-bind:value="title"
+                                            v-model="title"
                                             placeholder="Enter a title..."
                                             autocomplete="off"
                                             autofocus="autofocus"
