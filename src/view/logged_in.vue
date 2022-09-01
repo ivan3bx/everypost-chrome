@@ -103,7 +103,8 @@
                                                 <div id="tag-editor-box" class="w-full text-left sm:w-full">
                                                     <div class="relative sm:text-left">
                                                         <input
-                                                            v-bind:value="tagList"
+                                                            ref="tag-editor"
+                                                            v-on:input="parseTags"
                                                             type="search"
                                                             name="new-tag"
                                                             id="new-tag"
@@ -190,32 +191,43 @@ export default {
             })
         },
         refreshIcon: function () {
-            const elem = document.createElement("img")
-            elem.setAttribute("src", this.site_icon)
-            elem.classList = "h-10 w-10"
-
             const imageHolder = document.querySelector("#image-holder")
-            if (imageHolder) {
-                imageHolder.replaceChildren(elem)
-                console.log("replaced icon with image:", imageHolder.innerHTML)
+            if (imageHolder.childElementCount == 0) {
+                const elem = document.createElement("img")
+                elem.setAttribute("src", this.site_icon)
+                elem.classList = "h-10 w-10"
+
+                if (imageHolder) {
+                    imageHolder.replaceChildren(elem)
+                    console.log("replaced icon with image:", imageHolder.innerHTML)
+                }
             }
+        },
+        parseTags: function (e) {
+            e.preventDefault()
+            const newValue = this.$refs["tag-editor"].value
+            this.tagList = newValue
         },
         submit: function (e) {
             console.log("submitting bookmark ", this.$refs.form)
             e.preventDefault()
-            chrome.runtime
-                ?.sendMessage({
-                    action: "save",
-                    bookmark: {
-                        url: this.url,
-                        title: this.title,
-                        description: this.description,
-                        tagList: this.tagList,
-                    },
-                })
-                .then(() => {
+
+            const tags = this.tagList.split(",").map((val) => val.trim().replace(/\s+/g, "-"))
+
+            const bookmarkModel = {
+                url: this.url,
+                title: this.title,
+                description: this.description,
+                tags: tags.filter((val) => val != ""),
+            }
+
+            if (chrome.runtime) {
+                chrome.runtime.sendMessage({ action: "save", bookmark: bookmarkModel }).then(() => {
                     window.close()
                 })
+            } else {
+                console.log("submit bookmark: ", bookmarkModel)
+            }
         },
     },
     beforeMount() {
