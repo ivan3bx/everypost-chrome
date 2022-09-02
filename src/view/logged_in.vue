@@ -15,6 +15,7 @@
                                 tab.current
                                     ? 'border-blue-500 text-blue-600'
                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-200',
+                                tab.active ? '' : 'pointer-events-none cursor-default',
                                 'whitespace-nowrap flex pt-4 pb-2 px-1 border-b-2 font-medium text-sm',
                             ]"
                             :aria-current="tab.current ? 'page' : undefined">
@@ -47,6 +48,7 @@
                                     <div class="w-full flex-col space-y-1">
                                         <input
                                             id="b_title"
+                                            :disabled="disabled"
                                             v-model="title"
                                             placeholder="Enter a title..."
                                             autocomplete="off"
@@ -71,6 +73,7 @@
                                             <dd class="mt-1 text-sm text-gray-900 italic sm:mt-0 sm:col-span-3">
                                                 <textarea
                                                     id="b_description"
+                                                    :disabled="disabled"
                                                     v-model="description"
                                                     rows="3"
                                                     autocomplete="off"
@@ -98,6 +101,7 @@
                                                         <input
                                                             ref="tag-editor"
                                                             v-on:input="parseTags"
+                                                            :disabled="disabled"
                                                             type="search"
                                                             name="new-tag"
                                                             id="new-tag"
@@ -121,6 +125,7 @@
                                                 <button
                                                     v-on:click="submit"
                                                     name="button"
+                                                    :disabled="disabled"
                                                     type="submit"
                                                     class="inline-flex items-center shadow-sm px-6 py-1.5 border border-blue-600 text-sm leading-5 font-medium rounded-full text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                                     Save
@@ -165,6 +170,7 @@ export default {
             description: "",
             site_icon: "",
             tagList: "",
+            disabled: false,
         }
     },
     methods: {
@@ -183,6 +189,15 @@ export default {
                 this.site_icon = page.iconURL
                 this.title = page.title
                 this.description = page.description
+
+                if (this.url == "") {
+                    // 1. disable 'add bookmark' tab
+                    // 2. mark form fields disabled
+                    // 3. activate links tab
+                    this.disabled = true
+                    this.tabs[0].active = false
+                    this.activateTab(1)
+                }
             })
         },
         refreshIcon: function () {
@@ -218,7 +233,7 @@ export default {
                     window.close()
                 })
             } else {
-                console.log("submit bookmark: ", bookmarkModel)
+                console.log("placeholder to save: ", bookmarkModel)
             }
         },
     },
