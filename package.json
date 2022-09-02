@@ -11,15 +11,21 @@
   },
   "dependencies": {
     "core-js": "^3.8.3",
+    "lodash.debounce": "^4.0.8",
+    "lru-cache": "^7.14.0",
+    "psl": "^1.9.0",
     "vue": "^3.2.13",
     "vue-router": "^4.1.1"
   },
   "devDependencies": {
     "@headlessui/vue": "^1.6.5",
-    "@heroicons/vue": "^1.0.6",
+    "@heroicons/vue": "^2.0",
     "@tailwindcss/forms": "^0.5.2",
-    "@types/chrome": "^0.0.193",
-    "@types/jest": "^27.0.1",
+    "@tailwindcss/line-clamp": "^0.4.0",
+    "@types/chrome": "^0.0.195",
+    "@types/jest": "^27.0",
+    "@types/lodash.debounce": "^4.0.7",
+    "@types/psl": "^1.1.0",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
     "@vue/cli-plugin-babel": "~5.0.0",
@@ -40,7 +46,7 @@
     "sass-loader": "^13.0.0",
     "tailwindcss": "^3.1.4",
     "ts-jest": "^27.0.4",
-    "typescript": "~4.7.4",
+    "typescript": "~4.7",
     "vue-cli-plugin-chrome-extension-cli": "~1.1.4"
   }
 }

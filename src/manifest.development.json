@@ -1,13 +1,15 @@
 {
     "manifest_version": 3,
-    "name": "EveryPost Extension",
-    "description": "Bookmarks for the modern web.",
+    "name": "EveryPost for Chrome",
+    "description": "An extension for EveryPost (https://everypost.in) for store bookmarks and view related links.",
     "version": "0.0.1",
     "permissions": [
         "tabs",
         "notifications",
         "cookies",
-        "storage"
+        "storage",
+        "alarms",
+        "webNavigation"
     ],
     "host_permissions": [
         "https://everypost.in/*",
@@ -17,7 +19,7 @@
         "service_worker": "/background.js"
     },
     "action": {
-        "default_popup": "main.html"
+        "default_popup": "logged_out.html"
     },
     "icons": {
         "128": "icon_128.png"
@@ -44,6 +46,17 @@
             ],
             "js": [
                 "/content_everypost.js"
+            ]
+        },
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "exclude_matches": [
+                "https://everypost.in/*"
+            ],
+            "js": [
+                "/content.js"
             ]
         }
     ]
