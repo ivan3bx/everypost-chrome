@@ -192,15 +192,13 @@ export default {
         },
         refreshIcon: function () {
             const imageHolder = document.querySelector("#image-holder")
-            if (imageHolder.childElementCount == 0) {
-                const elem = document.createElement("img")
-                elem.setAttribute("src", this.site_icon)
-                elem.classList = "h-10 w-10"
+            const elem = document.createElement("img")
+            elem.setAttribute("src", this.site_icon)
+            elem.classList = "h-10 w-10"
 
-                if (imageHolder) {
-                    imageHolder.replaceChildren(elem)
-                    console.log("replaced icon with image:", imageHolder.innerHTML)
-                }
+            if (imageHolder) {
+                imageHolder.replaceChildren(elem)
+                console.log("replaced icon with image:", imageHolder.innerHTML)
             }
         },
         parseTags: function (e) {
@@ -247,7 +245,9 @@ export default {
         })
     },
     updated() {
-        this.refreshIcon()
+        if (this.activeTab == 0) {
+            this.refreshIcon()
+        }
     },
     mounted() {
         // initial focus on title
