@@ -42,14 +42,7 @@
                             <div class="overflow-hidden">
                                 <div class="flex space-x-2 px-4 pt-5 pb-3 sm:py-5 sm:px-6">
                                     <div id="image-holder" class="flex-shrink-0">
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            class="h-10 w-10 rounded-sm border border-gray-100"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor">
-                                            <use href="#icon-placeholder" />
-                                        </svg>
+                                        <PhotoIcon class="text-gray-300 h-10 w-10 border border-gray-300" />
                                     </div>
                                     <div class="w-full flex-col space-y-1">
                                         <input
@@ -150,12 +143,14 @@
 
 <script>
 import { fetchLinks, fetchPageData } from "../actions"
+import { PhotoIcon } from "@heroicons/vue/24/outline"
 import Links from "./links.vue"
 
 export default {
     name: "loggedInView",
     components: {
         Links,
+        PhotoIcon,
     },
     data() {
         return {
@@ -192,11 +187,10 @@ export default {
         },
         refreshIcon: function () {
             const imageHolder = document.querySelector("#image-holder")
-            const elem = document.createElement("img")
-            elem.setAttribute("src", this.site_icon)
-            elem.classList = "h-10 w-10"
-
-            if (imageHolder) {
+            if (this.site_icon) {
+                const elem = document.createElement("img")
+                elem.setAttribute("src", this.site_icon)
+                elem.classList = "h-10 w-10"
                 imageHolder.replaceChildren(elem)
                 console.log("replaced icon with image:", imageHolder.innerHTML)
             }
@@ -256,12 +250,7 @@ export default {
 
         // lazy-loading of icon, to prevent long delay in first render
         setTimeout(() => {
-            const elem = document.createElement("img")
-            elem.setAttribute("src", this.site_icon)
-            elem.classList = "h-10 w-10"
-
-            const imageHolder = document.querySelector("#image-holder")
-            imageHolder.replaceChildren(elem)
+            this.refreshIcon()
         }, 100)
     },
 }

@@ -8,37 +8,35 @@ const linkMap = new LinkMapping(
 )
 
 function updateWithTab(tab?: chrome.tabs.Tab) {
-    if (tab == null || tab.url?.startsWith("chrome://") || tab.pendingUrl?.startsWith("chrome://")) {
-        console.debug("tab has no content. skipping.")
+    const isChrome = tab?.url?.startsWith("chrome://") || tab?.pendingUrl?.startsWith("chrome://")
+    const tabId = tab?.id
+
+    if (tabId == null || isChrome) {
+        console.debug("tab has no content")
+        setBadgeText(0, tabId)
+        chrome.storage.local.set({ pageData: { url: "" }, links: [] })
         return
     }
 
-    const tabId = tab.id
+    chrome.scripting.executeScript(
+        {
+            target: { tabId: tabId },
+            func: parseMetadata,
+        },
+        (results) => {
+            if (results?.length > 0) {
+                const data = results[0].result
+                chrome.storage.local.set({ pageData: data })
 
-    if (tabId) {
-        chrome.scripting.executeScript(
-            {
-                target: { tabId: tabId },
-                func: parseMetadata,
-            },
-            (results) => {
-                if (results?.length > 0) {
-                    const data = results[0].result
-                    chrome.storage.local.set({ pageData: data })
-
-                    linkMap.getLinks(data.url, (links) => {
-                        setBadgeText(links.length, tabId)
-                        chrome.storage.local.set({ links: links })
-                    })
-                } else {
-                    chrome.storage.local.set({ pageData: { url: "" }, links: [] })
-                }
+                linkMap.getLinks(data.url, (links) => {
+                    setBadgeText(links.length, tabId)
+                    chrome.storage.local.set({ links: links })
+                })
+            } else {
+                chrome.storage.local.set({ pageData: { url: "" }, links: [] })
             }
-        )
-    } else {
-        setBadgeText(0, tabId)
-        chrome.storage.local.set({ pageData: {}, links: [] })
-    }
+        }
+    )
 }
 
 // Message dispatch
