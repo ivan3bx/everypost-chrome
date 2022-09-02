@@ -1,5 +1,6 @@
 // import psl from 'psl'
 import { LinkMapping } from "./link_mapping"
+import { parseMetadata } from "./page_processing"
 
 const linkMap = new LinkMapping(
     // excluded hostnames
@@ -11,22 +12,29 @@ function updateWithTab(tab?: chrome.tabs.Tab) {
         console.warn("updateTab() : null tab")
         return
     }
+
     const tabId = tab.id
 
     if (tabId) {
-        chrome.tabs.sendMessage(tabId, "check_page", (data) => {
-            if (!data) {
-                // content script did not send data; fallback to URL only
-                const pageURL = tab.url?.startsWith("chrome://") ? "" : tab.url
-                chrome.storage.local.set({ pageData: { url: pageURL }, links: [] })
-                return
-            }
+        chrome.scripting.executeScript(
+            {
+                target: { tabId: tabId },
+                func: parseMetadata,
+            },
+            (results) => {
+                if (results?.length > 0) {
+                    const data = results[0].result
+                    chrome.storage.local.set({ pageData: data })
 
-            linkMap.getLinks(data.url, (links) => {
-                setBadgeText(links.length, tabId)
-                chrome.storage.local.set({ links: links, pageData: data })
-            })
-        })
+                    linkMap.getLinks(data.url, (links) => {
+                        setBadgeText(links.length, tabId)
+                        chrome.storage.local.set({ links: links })
+                    })
+                } else {
+                    chrome.storage.local.set({ pageData: { url: "" }, links: [] })
+                }
+            }
+        )
     } else {
         setBadgeText(0, tabId)
         chrome.storage.local.set({ pageData: {}, links: [] })
