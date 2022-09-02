@@ -5,15 +5,15 @@
     "version": "0.0.1",
     "permissions": [
         "tabs",
-        "notifications",
         "cookies",
         "storage",
-        "alarms",
+        "scripting",
         "webNavigation"
     ],
     "host_permissions": [
         "https://everypost.in/*",
-        "http://localhost:3000/*"
+        "http://localhost:3000/*",
+        "<all_urls>"
     ],
     "background": {
         "service_worker": "/background.js"
@@ -46,17 +46,6 @@
             ],
             "js": [
                 "/content_everypost.js"
-            ]
-        },
-        {
-            "matches": [
-                "<all_urls>"
-            ],
-            "exclude_matches": [
-                "https://everypost.in/*"
-            ],
-            "js": [
-                "/content.js"
             ]
         }
     ]

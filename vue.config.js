@@ -52,7 +52,6 @@ module.exports = {
   configureWebpack: {
     entry: {
       background: "./src/chrome/background.ts",
-      content: "./src/chrome/content.ts",
       content_everypost: "./src/chrome/content_everypost.ts"
     },
     output: {
