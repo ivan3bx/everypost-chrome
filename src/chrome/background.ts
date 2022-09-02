@@ -8,8 +8,8 @@ const linkMap = new LinkMapping(
 )
 
 function updateWithTab(tab?: chrome.tabs.Tab) {
-    if (tab == null) {
-        console.warn("updateTab() : null tab")
+    if (tab == null || tab.url?.startsWith("chrome://") || tab.pendingUrl?.startsWith("chrome://")) {
+        console.debug("tab has no content. skipping.")
         return
     }
 
@@ -55,9 +55,6 @@ chrome.runtime.onMessage.addListener((message, sender, callback) => {
             break
         case "logout":
             setLoginStatus(false)
-            break
-        case "check_url":
-            updateWithTab(sender.tab)
             break
         default:
             console.warn("message listener: unrecognized action", message.action)
