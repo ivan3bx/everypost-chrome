@@ -10,7 +10,7 @@ export type LinksResponse = {
 }
 
 // LinkMapping manages lookup and local caching of link data
-export class LinkMapping {
+export class LinkRepository {
     private excludedHosts: Set<string>
     private linkCache: LRU<string, LinksResponse>
     private domainCache: LRU<string, boolean>

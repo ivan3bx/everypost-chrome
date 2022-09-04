@@ -1,8 +1,8 @@
 // import psl from 'psl'
-import { LinkMapping } from "./link_mapping"
+import { LinkRepository } from "./link_repository"
 import { parseMetadata } from "./page_processing"
 
-const linkMap = new LinkMapping(
+const linkMap = new LinkRepository(
     // excluded hostnames
     new Set(["localhost", "127.0.0.1", "mail.google.com"])
 )
