@@ -7,8 +7,15 @@ const linkMap = new LinkMapping(
     new Set(["localhost", "127.0.0.1", "mail.google.com"])
 )
 
+type BookmarkModel = {
+    url: string
+    title: string
+    description: string
+    tags: string[]
+}
+
 function updateWithTab(tab?: chrome.tabs.Tab) {
-    const isChrome = tab?.url?.startsWith("chrome://") || tab?.pendingUrl?.startsWith("chrome://")
+    const isChrome = tab?.url?.startsWith("chrome://") || tab?.pendingUrl?.startsWith("chrome://") || tab?.url?.startsWith("https://chrome.google.com")
     const tabId = tab?.id
 
     if (tabId == null || isChrome) {
@@ -29,6 +36,7 @@ function updateWithTab(tab?: chrome.tabs.Tab) {
                 chrome.storage.local.set({ pageData: data })
 
                 linkMap.getLinks(data.url, (rsp) => {
+                    setActionIcon(rsp.bookmark != null)
                     setBadgeText(rsp.links.length, tabId)
                     chrome.storage.local.set({ linkRsp: rsp })
                 })
@@ -136,7 +144,7 @@ function updateStatus() {
         })
 }
 
-async function saveBookmark(data: object) {
+async function saveBookmark(data: BookmarkModel) {
     const token = await chrome.storage.local.get({ auth_token: "" }).then((data) => {
         return data.auth_token
     })
@@ -156,6 +164,8 @@ async function saveBookmark(data: object) {
     fetch("https://everypost.in/api/bookmarks", reqData)
         .then((response) => {
             console.log("saveBookmark(): response", response.status)
+            // invalidate cache
+            linkMap.deleteFromCache(data.url)
         })
         .catch((reason) => {
             console.warn("saveBookmark(): error ", reason)
@@ -168,6 +178,24 @@ function setBadgeText(count: number, tabId?: number) {
     const tag = count > 8 ? "9+" : `${count}`
     chrome.action.setBadgeText({ text: count > 0 ? tag : "", tabId: tabId })
     chrome.action.setBadgeBackgroundColor({ color: "#e62e00" })
+}
+
+function setActionIcon(active: boolean) {
+    if (active) {
+        chrome.action.setIcon({
+            path: {
+                "32": "./logo_active_32.png",
+                "128": "./logo_active_128.png"
+            }
+        })
+    } else {
+        chrome.action.setIcon({
+            path: {
+                "32": "./logo_32.png",
+                "128": "./logo_128.png"
+            }
+        })
+    }
 }
 
 // initialization
