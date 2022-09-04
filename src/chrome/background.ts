@@ -28,9 +28,9 @@ function updateWithTab(tab?: chrome.tabs.Tab) {
                 const data = results[0].result
                 chrome.storage.local.set({ pageData: data })
 
-                linkMap.getLinks(data.url, (links) => {
-                    setBadgeText(links.length, tabId)
-                    chrome.storage.local.set({ links: links })
+                linkMap.getLinks(data.url, (rsp) => {
+                    setBadgeText(rsp.links.length, tabId)
+                    chrome.storage.local.set({ linkRsp: rsp })
                 })
             } else {
                 chrome.storage.local.set({ pageData: { url: "" }, links: [] })

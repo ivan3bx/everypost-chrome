@@ -16,8 +16,8 @@ export async function fetchPageData() {
 // fetchLinks returns a set of links from local storage
 export async function fetchLinks() {
     if (chrome.storage) {
-        return chrome.storage.local.get({ links: [] }).then((data) => {
-            return data.links;
+        return chrome.storage.local.get({ linkRsp: {links: []} }).then((data) => {
+            return data.linkRsp;
         });
     } else {
         // debug mode

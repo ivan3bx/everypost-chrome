@@ -1,10 +1,18 @@
 import psl from "psl"
 import LRU from "lru-cache"
 
+export type LinksResponse = {
+    links: string[]
+    bookmark?: {
+        externalID: string
+        createdAt: string
+    }
+}
+
 // LinkMapping manages lookup and local caching of link data
 export class LinkMapping {
     private excludedHosts: Set<string>
-    private linkCache: LRU<string, string[]>
+    private linkCache: LRU<string, LinksResponse>
     private domainCache: LRU<string, boolean>
 
     constructor(excludedDomains: Set<string>) {
@@ -21,6 +29,7 @@ export class LinkMapping {
         })
     }
 
+
     // Fetch associated links for a given URL, and executes the callback function
     // on successful result.
     //
@@ -28,26 +37,26 @@ export class LinkMapping {
     // not to have any indexed links).
     //
     // Callback will be invoked with empty [] results, or with cached results.
-    async getLinks(url: string, callback: (links: string[]) => void) {
+    async getLinks(url: string, callback: (links: LinksResponse) => void) {
         const lookupURL = "https://everypost.in/api/links?" + new URLSearchParams({ url: url })
         const hostname = new URL(url)?.hostname
         const domain = psl.get(hostname)
 
         if (this.linkCache.has(url)) {
             console.debug("cached result for", this.linkCache.get(url))
-            callback(this.linkCache.get(url) || [])
+            callback(this.linkCache.get(url) || {links: []})
             return
         }
 
         if (domain == null || this.excludedHosts.has(hostname)) {
             console.debug("hostname excluded: " + hostname)
-            callback([])
+            callback({links: []})
             return
         }
 
         if (this.domainCache.get(domain) == false) {
             console.debug("domain marked as not present")
-            callback([])
+            callback({links: []})
             return
         }
 
@@ -59,9 +68,9 @@ export class LinkMapping {
                 this.domainCache.set(domain, body.domain == true)
 
                 // Handle link results
-                const links: string[] = response.status == 200 ? body.links : []
-                this.linkCache.set(url, links)
-                callback(links)
+                const rsp: LinksResponse = response.status == 200 ? body : {links: []}
+                this.linkCache.set(url, rsp)
+                callback(rsp)
             })
         })
     }
