@@ -6,7 +6,6 @@ export type BookmarkModel = {
 }
 
 export class BookmarkRepository {
-
     async save(data: BookmarkModel) {
         const token = await this.authToken()
 
@@ -16,13 +15,13 @@ export class BookmarkRepository {
             "Content-Type": "application/json",
         }
 
-        const reqData = {
+        const request = {
             method: "POST",
             headers: headers,
             body: JSON.stringify(data),
         }
 
-        fetch("https://everypost.in/api/bookmarks", reqData)
+        fetch("https://everypost.in/api/bookmarks", request)
             .then((response) => {
                 console.log("saveBookmark(): response", response.status)
             })

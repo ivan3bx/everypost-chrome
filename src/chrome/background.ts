@@ -1,14 +1,13 @@
-// import psl from 'psl'
 import { LinkRepository } from "./link_repository"
 import { BookmarkRepository } from "./bookmark_repository"
-
 import { parseMetadata } from "./page_processing"
 
-const linksRepo = new LinkRepository(
-    // excluded hostnames
-    new Set(["localhost", "127.0.0.1", "mail.google.com"])
-)
-
+const linksRepo = new LinkRepository({
+    excludedDomains: [
+        // domains to never check
+        "localhost", "127.0.0.1", "mail.google.com"
+    ]
+})
 const bookmarks = new BookmarkRepository()
 
 function updateWithTab(tab?: chrome.tabs.Tab) {
@@ -77,7 +76,8 @@ chrome.webNavigation.onHistoryStateUpdated.addListener((message) => {
 // Handle window activation events
 chrome.windows.onFocusChanged.addListener((windowId) => {
     if (windowId == chrome.windows.WINDOW_ID_NONE) {
-        // all windows lost focus ; no-op
+        // all windows lost focus
+        return
     } else {
         chrome.tabs.query({ active: true, windowId: windowId }, (tabs) => {
             updateWithTab(tabs[0])
@@ -103,9 +103,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
     }
 })
 
-// Triggering access check on window creation is better than 'onStartup' given that Chrome
-// may exist in the background, meaning 'onStartup' never invoked.
-// Creating a window happens both on startup as well as when user activates background app.
+// Triggering access check on window creation is better than 'onStartup' given
+// that Chrome may exist in the background, meaning 'onStartup' never invoked.
+//
+// Creating a window happens both on startup as well as when user activates
+// background app.
 chrome.windows.onCreated.addListener(() => {
     chrome.windows.getAll((windows) => {
         // TODO: enable in prod

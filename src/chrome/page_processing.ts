@@ -1,4 +1,3 @@
-
 export function parseMetadata() {
     const descQuery = "meta[name='twitter:description'],[property='og:description'],[name='description']"
     const urlQuery = "link[rel='canonical']"
@@ -16,5 +15,4 @@ export function parseMetadata() {
         title: title || document.querySelector("title")?.text || document.querySelector("title")?.text,
         description: desc || "",
     }
-
 }

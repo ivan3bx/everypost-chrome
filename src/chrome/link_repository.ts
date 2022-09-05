@@ -9,15 +9,22 @@ export type LinksResponse = {
     }
 }
 
+type LinkOptions = {
+    excludedDomains?: string[]
+}
+
 // LinkRepository manages querying and local caching of links
 export class LinkRepository {
     private excludedHosts: Set<string>
     private linkCache: LRU<string, LinksResponse>
     private domainCache: LRU<string, boolean>
 
-    constructor(excludedDomains: Set<string>) {
-        this.excludedHosts = excludedDomains
-        this.installDebugHooks()
+    constructor(options?: LinkOptions) {
+        this.excludedHosts = new Set()
+
+        if (options?.excludedDomains) {
+            options.excludedDomains.forEach(item => this.excludedHosts.add(item))
+        }
 
         this.domainCache = new LRU({
             max: 100, // 100 domains
@@ -88,16 +95,5 @@ export class LinkRepository {
         if (domain) {
             this.domainCache.delete(domain)
         }
-    }
-
-    // configures a listener to log changes to local storage
-    private installDebugHooks() {
-        // chrome.storage.onChanged.addListener((changes) => {
-        //     for (const [key, { oldValue, newValue }] of Object.entries(changes)) {
-        //         const orig = JSON.stringify(oldValue)
-        //         const updated = JSON.stringify(newValue)
-        //         console.log(`Storage key "${key}" changed. Old: "${orig}" New: "${updated}"`)
-        //     }
-        // })
     }
 }
