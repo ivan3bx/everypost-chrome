@@ -184,7 +184,7 @@ export default {
         refreshContent: function () {
             fetchPageData().then((data) => {
                 const page = data
-                console.log("Setting page data:", page)
+                console.debug("Setting page data:", page)
                 this.url = page.url
                 this.site_icon = page.iconURL
                 this.title = page.title
@@ -207,7 +207,7 @@ export default {
                 elem.setAttribute("src", this.site_icon)
                 elem.classList = "h-10 w-10"
                 imageHolder.replaceChildren(elem)
-                console.log("replaced icon with image:", imageHolder.innerHTML)
+                console.debug("replaced icon with image:", imageHolder.innerHTML)
             }
         },
         parseTags: function (e) {
@@ -216,7 +216,7 @@ export default {
             this.tagList = newValue
         },
         submit: function (e) {
-            console.log("submitting bookmark ", this.$refs.form)
+            console.debug("submitting bookmark ", this.$refs.form)
             e.preventDefault()
 
             const tags = this.tagList.split(",").map((val) => val.trim().replace(/\s+/g, "-"))

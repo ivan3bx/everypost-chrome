@@ -1,13 +1,17 @@
 import { shallowMount } from '@vue/test-utils'
-import Popup from '@/view/popup.vue'
+import LoggedIn from '@/view/logged_in.vue'
 
-describe('Popup.vue', () => {
+describe('LoggedIn.vue', () => {
   it('renders default Sign In window', () => {
-    const msg = 'Sign In'
-    const wrapper = shallowMount(Popup, {
-      props: { msg }
+    const div = document.createElement('div')
+    document.body.appendChild(div)
+
+    const wrapper = shallowMount(LoggedIn, {
+      attachTo: div
     })
-    console.log(wrapper.text())
-    expect(wrapper.text()).toMatch(msg)
+
+    expect(wrapper.text()).toMatch("Add Bookmark")
+    expect(wrapper.text()).toMatch("Related Links")
+    expect(div.querySelectorAll("nav > a").length).toEqual(2)
   })
 })
