@@ -22,7 +22,8 @@
         "default_popup": "logged_out.html"
     },
     "icons": {
-        "128": "icon_128.png"
+        "128": "logo_128.png",
+        "32": "logo_32.png"
     },
     "commands": {
         "_execute_action": {

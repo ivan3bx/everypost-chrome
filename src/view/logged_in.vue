@@ -242,7 +242,7 @@ export default {
 
         // Fetch links
         fetchLinks().then((data) => {
-            this.links = data
+            this.links = data.links
             this.tabs[1].active = this.links.length > 0
             this.tabs[1].count = this.links.length > 0 ? this.links.length : ""
 

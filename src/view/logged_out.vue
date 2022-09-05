@@ -72,7 +72,7 @@ export default {
     },
     beforeMount() {
         fetchLinks().then((data) => {
-            this.links = data
+            this.links = data.links
         })
     },
 }

@@ -1,14 +1,17 @@
-// import psl from 'psl'
-import { LinkMapping } from "./link_mapping"
+import { LinkRepository } from "./link_repository"
+import { BookmarkRepository } from "./bookmark_repository"
 import { parseMetadata } from "./page_processing"
 
-const linkMap = new LinkMapping(
-    // excluded hostnames
-    new Set(["localhost", "127.0.0.1", "mail.google.com"])
-)
+const linksRepo = new LinkRepository({
+    excludedDomains: [
+        // domains to never check
+        "localhost", "127.0.0.1", "mail.google.com"
+    ]
+})
+const bookmarks = new BookmarkRepository()
 
 function updateWithTab(tab?: chrome.tabs.Tab) {
-    const isChrome = tab?.url?.startsWith("chrome://") || tab?.pendingUrl?.startsWith("chrome://")
+    const isChrome = tab?.url?.startsWith("chrome://") || tab?.pendingUrl?.startsWith("chrome://") || tab?.url?.startsWith("https://chrome.google.com")
     const tabId = tab?.id
 
     if (tabId == null || isChrome) {
@@ -28,12 +31,13 @@ function updateWithTab(tab?: chrome.tabs.Tab) {
                 const data = results[0].result
                 chrome.storage.local.set({ pageData: data })
 
-                linkMap.getLinks(data.url, (links) => {
-                    setBadgeText(links.length, tabId)
-                    chrome.storage.local.set({ links: links })
+                linksRepo.getLinks(data.url, (rsp) => {
+                    setActionIcon(rsp.bookmark != null)
+                    setBadgeText(rsp.links.length, tabId)
+                    chrome.storage.local.set({ linkRsp: rsp })
                 })
             } else {
-                chrome.storage.local.set({ pageData: { url: "" }, links: [] })
+                chrome.storage.local.set({ pageData: { url: "" }, linkRsp: { links: [] } })
             }
         }
     )
@@ -47,7 +51,8 @@ chrome.runtime.onMessage.addListener((message, sender, callback) => {
             callback({ success: true })
             break
         case "save":
-            saveBookmark(message.bookmark).then(() => {
+            bookmarks.save(message.bookmark).then(() => {
+                linksRepo.deleteFromCache(message.bookmark.url)
                 callback({ success: true })
             })
             break
@@ -71,7 +76,8 @@ chrome.webNavigation.onHistoryStateUpdated.addListener((message) => {
 // Handle window activation events
 chrome.windows.onFocusChanged.addListener((windowId) => {
     if (windowId == chrome.windows.WINDOW_ID_NONE) {
-        // all windows lost focus ; no-op
+        // all windows lost focus
+        return
     } else {
         chrome.tabs.query({ active: true, windowId: windowId }, (tabs) => {
             updateWithTab(tabs[0])
@@ -97,9 +103,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
     }
 })
 
-// Triggering access check on window creation is better than 'onStartup' given that Chrome
-// may exist in the background, meaning 'onStartup' never invoked.
-// Creating a window happens both on startup as well as when user activates background app.
+// Triggering access check on window creation is better than 'onStartup' given
+// that Chrome may exist in the background, meaning 'onStartup' never invoked.
+//
+// Creating a window happens both on startup as well as when user activates
+// background app.
 chrome.windows.onCreated.addListener(() => {
     chrome.windows.getAll((windows) => {
         // TODO: enable in prod
@@ -109,26 +117,27 @@ chrome.windows.onCreated.addListener(() => {
     })
 })
 
-function setLoginStatus(logged_in: boolean) {
-    chrome.storage.local.set({ logged_in: logged_in })
+function setLoginStatus(logged_in: boolean, token?: string) {
 
     if (logged_in) {
         chrome.action.setPopup({ popup: "logged_in.html" })
+        chrome.storage.local.set({ logged_in: true, auth_token: token })
     } else {
         chrome.action.setPopup({ popup: "logged_out.html" })
+        chrome.storage.local.set({ logged_in: false, auth_token: "" })
     }
 }
 
 function updateStatus() {
     console.debug("updateStatus()")
     fetch("https://everypost.in/users/access_check")
-        .then((response) => {
+        .then(async (response) => {
             if (response.status == 200) {
-                response.json().then((value) => {
-                    chrome.storage.local.set({ auth_token: value.auth_token })
-                })
+                const token = await response.json().then(data => { return data.auth_token })
+                setLoginStatus(true, token)
+            } else {
+                setLoginStatus(false)
             }
-            setLoginStatus(response.status == 200)
         })
         .catch(() => {
             setLoginStatus(false)
@@ -136,31 +145,6 @@ function updateStatus() {
         })
 }
 
-async function saveBookmark(data: object) {
-    const token = await chrome.storage.local.get({ auth_token: "" }).then((data) => {
-        return data.auth_token
-    })
-
-    const headers = {
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-    }
-
-    const reqData = {
-        method: "POST",
-        headers: headers,
-        body: JSON.stringify(data),
-    }
-
-    fetch("https://everypost.in/api/bookmarks", reqData)
-        .then((response) => {
-            console.log("saveBookmark(): response", response.status)
-        })
-        .catch((reason) => {
-            console.warn("saveBookmark(): error ", reason)
-        })
-}
 
 // Highlight a counter as badge text
 // eslint-disable-next-line
@@ -168,6 +152,24 @@ function setBadgeText(count: number, tabId?: number) {
     const tag = count > 8 ? "9+" : `${count}`
     chrome.action.setBadgeText({ text: count > 0 ? tag : "", tabId: tabId })
     chrome.action.setBadgeBackgroundColor({ color: "#e62e00" })
+}
+
+function setActionIcon(active: boolean) {
+    if (active) {
+        chrome.action.setIcon({
+            path: {
+                "32": "./logo_active_32.png",
+                "128": "./logo_active_128.png"
+            }
+        })
+    } else {
+        chrome.action.setIcon({
+            path: {
+                "32": "./logo_32.png",
+                "128": "./logo_128.png"
+            }
+        })
+    }
 }
 
 // initialization
