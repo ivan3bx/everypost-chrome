@@ -1,18 +1,15 @@
 // import psl from 'psl'
 import { LinkRepository } from "./link_repository"
+import { BookmarkRepository } from "./bookmark_repository"
+
 import { parseMetadata } from "./page_processing"
 
-const linkMap = new LinkRepository(
+const linksRepo = new LinkRepository(
     // excluded hostnames
     new Set(["localhost", "127.0.0.1", "mail.google.com"])
 )
 
-type BookmarkModel = {
-    url: string
-    title: string
-    description: string
-    tags: string[]
-}
+const bookmarks = new BookmarkRepository()
 
 function updateWithTab(tab?: chrome.tabs.Tab) {
     const isChrome = tab?.url?.startsWith("chrome://") || tab?.pendingUrl?.startsWith("chrome://") || tab?.url?.startsWith("https://chrome.google.com")
@@ -35,13 +32,13 @@ function updateWithTab(tab?: chrome.tabs.Tab) {
                 const data = results[0].result
                 chrome.storage.local.set({ pageData: data })
 
-                linkMap.getLinks(data.url, (rsp) => {
+                linksRepo.getLinks(data.url, (rsp) => {
                     setActionIcon(rsp.bookmark != null)
                     setBadgeText(rsp.links.length, tabId)
                     chrome.storage.local.set({ linkRsp: rsp })
                 })
             } else {
-                chrome.storage.local.set({ pageData: { url: "" }, links: [] })
+                chrome.storage.local.set({ pageData: { url: "" }, linkRsp: { links: [] } })
             }
         }
     )
@@ -55,7 +52,8 @@ chrome.runtime.onMessage.addListener((message, sender, callback) => {
             callback({ success: true })
             break
         case "save":
-            saveBookmark(message.bookmark).then(() => {
+            bookmarks.save(message.bookmark).then(() => {
+                linksRepo.deleteFromCache(message.bookmark.url)
                 callback({ success: true })
             })
             break
@@ -117,26 +115,27 @@ chrome.windows.onCreated.addListener(() => {
     })
 })
 
-function setLoginStatus(logged_in: boolean) {
-    chrome.storage.local.set({ logged_in: logged_in })
+function setLoginStatus(logged_in: boolean, token?: string) {
 
     if (logged_in) {
         chrome.action.setPopup({ popup: "logged_in.html" })
+        chrome.storage.local.set({ logged_in: true, auth_token: token })
     } else {
         chrome.action.setPopup({ popup: "logged_out.html" })
+        chrome.storage.local.set({ logged_in: false, auth_token: "" })
     }
 }
 
 function updateStatus() {
     console.debug("updateStatus()")
     fetch("https://everypost.in/users/access_check")
-        .then((response) => {
+        .then(async (response) => {
             if (response.status == 200) {
-                response.json().then((value) => {
-                    chrome.storage.local.set({ auth_token: value.auth_token })
-                })
+                const token = await response.json().then(data => { return data.auth_token })
+                setLoginStatus(true, token)
+            } else {
+                setLoginStatus(false)
             }
-            setLoginStatus(response.status == 200)
         })
         .catch(() => {
             setLoginStatus(false)
@@ -144,33 +143,6 @@ function updateStatus() {
         })
 }
 
-async function saveBookmark(data: BookmarkModel) {
-    const token = await chrome.storage.local.get({ auth_token: "" }).then((data) => {
-        return data.auth_token
-    })
-
-    const headers = {
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-    }
-
-    const reqData = {
-        method: "POST",
-        headers: headers,
-        body: JSON.stringify(data),
-    }
-
-    fetch("https://everypost.in/api/bookmarks", reqData)
-        .then((response) => {
-            console.log("saveBookmark(): response", response.status)
-            // invalidate cache
-            linkMap.deleteFromCache(data.url)
-        })
-        .catch((reason) => {
-            console.warn("saveBookmark(): error ", reason)
-        })
-}
 
 // Highlight a counter as badge text
 // eslint-disable-next-line
