@@ -11,13 +11,19 @@ const linksRepo = new LinkRepository({
 const bookmarks = new BookmarkRepository()
 
 function updateWithTab(tab?: chrome.tabs.Tab) {
-    const isChrome = tab?.url?.startsWith("chrome://") || tab?.pendingUrl?.startsWith("chrome://") || tab?.url?.startsWith("https://chrome.google.com")
+    const isTestExtension = tab?.url?.startsWith("chrome-extension://")
+    const isSettings = tab?.url?.startsWith("chrome://") || tab?.pendingUrl?.startsWith("chrome://") || tab?.url?.startsWith("https://chrome.google.com")
     const tabId = tab?.id
 
-    if (tabId == null || isChrome) {
+    if (isTestExtension) {
+        // for extension testing only, do not overwrite previous content
+        return
+    }
+
+    if (tabId == null || isSettings) {
         console.debug("tab has no content")
         setBadgeText(0, tabId)
-        chrome.storage.local.set({ pageData: { url: "" }, links: [] })
+        chrome.storage.local.set({ pageData: { url: "" }, linkRsp: {links: [] } })
         return
     }
 
