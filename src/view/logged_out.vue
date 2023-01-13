@@ -25,6 +25,7 @@
 
                 <div class="flex flex-col space-y-2">
                     <a
+                        id="sign-up-button"
                         class="w-max group relative py-2 px-8 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                         href="https://everypost.in/features/?utm_source=extension+chrome"
                         target="_blank">
@@ -33,9 +34,11 @@
                     <div class="my-1 font-medium text-sm text-gray-700">
                         Already have an account?
                         <a
+                            id="sign-in-link"
                             class="font-medium text-blue-600 underline-offset-1 underline"
                             @click="authenticate"
-                            href="https://everypost.in/users/sign_in?utm_source=extension+chrome&extension=true">
+                            href="https://everypost.in/users/sign_in?utm_source=extension+chrome&extension=true"
+                            target="_blank">
                             Sign in
                         </a>
                     </div>

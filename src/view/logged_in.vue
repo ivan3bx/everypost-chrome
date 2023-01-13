@@ -184,7 +184,6 @@ export default {
         refreshContent: function () {
             fetchPageData().then((data) => {
                 const page = data
-                console.debug("Setting page data:", page)
                 this.url = page.url
                 this.site_icon = page.iconURL
                 this.title = page.title
@@ -207,7 +206,6 @@ export default {
                 elem.setAttribute("src", this.site_icon)
                 elem.classList = "h-10 w-10"
                 imageHolder.replaceChildren(elem)
-                console.debug("replaced icon with image:", imageHolder.innerHTML)
             }
         },
         parseTags: function (e) {
