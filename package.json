@@ -21,7 +21,6 @@
     "@headlessui/vue": "^1.6.7",
     "@heroicons/vue": "^2.0",
     "@tailwindcss/forms": "^0.5.3",
-    "@tailwindcss/line-clamp": "^0.4.2",
     "@types/chrome": "^0.0.196",
     "@types/jest": "^27.0",
     "@types/lodash.debounce": "^4.0.7",
