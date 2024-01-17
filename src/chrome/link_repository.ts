@@ -73,7 +73,7 @@ export class LinkRepository {
         }
 
         // Domain valid, or has not been accessed yet
-        fetch(lookupURL, { headers: headers }).then((response) => {
+        fetch(lookupURL, { method: "POST", headers: headers }).then((response) => {
             response.json().then((body) => {
                 // Update domain cache
                 this.domainCache.set(domain, body.domain == true)
