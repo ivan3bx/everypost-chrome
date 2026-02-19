@@ -27,6 +27,7 @@ chromeName.forEach((name) => {
 const isDevMode = process.env.NODE_ENV === 'development'
 
 module.exports = {
+  lintOnSave: false,
   pages,
   filenameHashing: false,
   chainWebpack: (config) => {
