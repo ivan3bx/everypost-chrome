@@ -147,7 +147,7 @@ function updateStatus() {
 
 
 // Highlight a counter as badge text
-// eslint-disable-next-line
+ 
 function setBadgeText(count: number, tabId?: number) {
     const tag = count > 8 ? "9+" : `${count}`
     chrome.action.setBadgeText({ text: count > 0 ? tag : "", tabId: tabId })
