@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "EveryPost for Chrome",
-    "description": "An extension for EveryPost (https://everypost.in) for store bookmarks and view related links.",
+    "description": "An extension for EveryPost (https://everypost.in) to save bookmarks and view related links.",
     "version": "0.0.1",
     "permissions": [
         "tabs",
@@ -15,13 +15,15 @@
         "<all_urls>"
     ],
     "background": {
-        "service_worker": "/background.js"
+        "service_worker": "src/chrome/background.ts",
+        "type": "module"
     },
     "action": {
-        "default_popup": "logged_out.html"
+        "default_popup": "src/entry/logged_out.html"
     },
     "icons": {
-        "128": "icon_128.png"
+        "32": "logo_32.png",
+        "128": "logo_128.png"
     },
     "commands": {
         "_execute_action": {
@@ -37,7 +39,7 @@
                 "https://everypost.in/*"
             ],
             "js": [
-                "/content_everypost.js"
+                "src/chrome/content_everypost.ts"
             ]
         }
     ]
