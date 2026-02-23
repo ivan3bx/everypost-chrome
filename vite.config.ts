@@ -32,6 +32,7 @@ export default defineConfig(({ mode }) => ({
   define: {
     __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
   },
+  base: '',
   build: {
     sourcemap: mode === 'development',
     outDir: 'dist',

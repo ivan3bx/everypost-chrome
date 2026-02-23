@@ -120,10 +120,10 @@ chrome.windows.onCreated.addListener(() => {
 function setLoginStatus(logged_in: boolean, token?: string) {
 
     if (logged_in) {
-        chrome.action.setPopup({ popup: "logged_in.html" })
+        chrome.action.setPopup({ popup: "src/entry/logged_in.html" })
         chrome.storage.local.set({ logged_in: true, auth_token: token })
     } else {
-        chrome.action.setPopup({ popup: "logged_out.html" })
+        chrome.action.setPopup({ popup: "src/entry/logged_out.html" })
         chrome.storage.local.set({ logged_in: false, auth_token: "" })
     }
 }
@@ -158,15 +158,15 @@ function setActionIcon(active: boolean) {
     if (active) {
         chrome.action.setIcon({
             path: {
-                "32": "logo_active_32.png",
-                "128": "logo_active_128.png"
+                "32": chrome.runtime.getURL("logo_active_32.png"),
+                "128": chrome.runtime.getURL("logo_active_128.png")
             }
         })
     } else {
         chrome.action.setIcon({
             path: {
-                "32": "logo_32.png",
-                "128": "logo_128.png"
+                "32": chrome.runtime.getURL("logo_32.png"),
+                "128": chrome.runtime.getURL("logo_128.png")
             }
         })
     }
