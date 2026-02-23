@@ -1,86 +1,103 @@
 # EveryPost Chrome Extension
 
+Built with Vue 3, Vite, TypeScript, and Tailwind CSS. Targets Chrome Manifest V3.
+
 ## Project Layout
 
 ```text
-./dist               - output of chrome extension
+./dist               - compiled extension output (load this in Chrome)
 ./src                - all source files
-./src/chrome         - chrome extension javascript files
-./src/entry          - Vue entry points
+./src/chrome         - Chrome extension scripts (background, content scripts)
+./src/entry          - Vue entry points (HTML + TS pairs)
 ./src/view           - Vue components
-./src/assets         - assets (used by components)
-./public/_base.html  - template file (used to generate Vue entry points)
-./public/index.html  - dev page (eg. "npm run serve")
-./tests              - tests
+./src/assets         - static assets used by components
+./manifest.json      - Chrome extension manifest (single source of truth)
+./public/index.html  - local debug page for iterating on UI without loading in Chrome
+./tests              - unit tests
 ```
 
-## Testing chrome extension in-browser
+## Prerequisites
 
-Default route will no longer load. `vuejs.config.js` maps each component
-in `src/entry/..` into its own page.
+- Node.js 18+
+- npm 9+
 
-```js
-const chromeName = getEntryFile(path.resolve(`src/entry`))
-// ...
-chromeName.forEach((name) => {
-    // ...
-    pages[fileName] = {
-        entry: `src/entry/${name}`,
-        template: 'public/index.html',
-        filename: `${fileName}.html`
-    }
-})
-```
-
-Therefore, to test `src/entry/main.ts` (or any file that mounts '#app' via `createApp()`)
-the URL looks like:  http://localhost:8080/logged_out.html
-
-## Project setup
+## Setup
 
 ```bash
 npm install
 ```
 
-### Compiles and hot-reloads for development
+## Development
+
+### Watch mode (recommended for Chrome extension development)
+
+Builds the extension and rebuilds automatically on file changes:
 
 ```bash
-# executes build + watch for chrome extension development
-npm run build-watch
+npm run dev
 ```
 
-### Compiles and minifies for production
+Then load `./dist` as an unpacked extension in Chrome (see [Loading in Chrome](#loading-in-chrome)).
+Chrome will pick up most changes automatically when files rebuild — for background script
+changes you may need to click the reload icon on `chrome://extensions`.
+
+### Debug page (UI iteration without Chrome)
+
+Open `public/index.html` directly in a browser or via a local file server. It links to
+the entry point HTML files so you can iterate on popup UI quickly without reloading
+the extension:
+
+- `src/entry/logged_out.html` — the default popup (unauthenticated)
+- `src/entry/logged_in.html` — the popup shown after login
+
+### Loading in Chrome
+
+1. Go to `chrome://extensions`
+2. Enable **Developer mode** (top right toggle)
+3. Click **Load unpacked** and select the `./dist` folder
+4. The extension icon appears in the toolbar
+
+## Build for Production
 
 ```bash
 npm run build
 ```
 
-### Run your unit tests
+Output is written to `./dist`. The manifest's `host_permissions` will not include
+`http://localhost:3000/*` (that is injected only in development mode).
+
+## Testing
+
+### Run unit tests (watch mode)
+
+```bash
+npm test
+```
+
+### Run unit tests once (CI)
 
 ```bash
 npm run test:unit
 ```
 
-### Lints and fixes files
+Tests use [Vitest](https://vitest.dev/) with `jsdom` and are configured inline in `vite.config.ts`.
+
+## Linting
 
 ```bash
 npm run lint
 ```
 
-## How this project was generated
+Uses ESLint v9 with flat config (`eslint.config.mjs`). Automatically fixes fixable issues.
 
-https://www.npmjs.com/package/vue-cli-plugin-chrome-extension-cli
+## Toolchain
 
-```bash
-# Created a Vue.js project
-vue create sample-extension
-cd sample-extension/
-
-# Add chrome extension support
-vue add chrome-extension-cli
-```
-
-Update default `vue.config.js` to keep serviceWorker code separate from Vue
-and to use a different 'base' template for entry pages.
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+| Tool | Purpose |
+|------|---------|
+| [Vite](https://vitejs.dev/) | Build tool |
+| [vite-plugin-web-extension](https://vite-plugin-web-extension.aklinker1.io/) | Chrome extension build support |
+| [Vue 3](https://vuejs.org/) | UI framework |
+| [Vitest](https://vitest.dev/) | Unit testing |
+| [ESLint v9](https://eslint.org/) | Linting (flat config) |
+| [Tailwind CSS](https://tailwindcss.com/) | Styling |
+| [TypeScript](https://www.typescriptlang.org/) | Type safety |
