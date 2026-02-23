@@ -44,7 +44,7 @@ export class LinkRepository {
     //
     // Callback will be invoked with empty [] results, or with cached results.
     async getLinks(url: string, callback: (links: LinksResponse) => void) {
-        const lookupURL = "https://everypost.in/api/links?" + new URLSearchParams({ url: url })
+        const lookupURL = "https://everypost.in/api/links"
         const hostname = new URL(url)?.hostname
         const domain = psl.get(hostname)
         const authToken = await chrome.storage.local.get({ auth_token: "" }).then((data) => {
@@ -73,7 +73,12 @@ export class LinkRepository {
         }
 
         // Domain valid, or has not been accessed yet
-        fetch(lookupURL, { headers: headers }).then((response) => {
+        headers.set("Content-Type", "application/x-www-form-urlencoded")
+        fetch(lookupURL, {
+            method: "POST",
+            headers: headers,
+            body: new URLSearchParams({ url: url }),
+        }).then((response) => {
             response.json().then((body) => {
                 // Update domain cache
                 this.domainCache.set(domain, body.domain == true)
