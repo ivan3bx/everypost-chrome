@@ -158,15 +158,15 @@ function setActionIcon(active: boolean) {
     if (active) {
         chrome.action.setIcon({
             path: {
-                "32": "./logo_active_32.png",
-                "128": "./logo_active_128.png"
+                "32": "logo_active_32.png",
+                "128": "logo_active_128.png"
             }
         })
     } else {
         chrome.action.setIcon({
             path: {
-                "32": "./logo_32.png",
-                "128": "./logo_128.png"
+                "32": "logo_32.png",
+                "128": "logo_128.png"
             }
         })
     }
