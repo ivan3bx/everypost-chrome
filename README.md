@@ -12,7 +12,6 @@ Built with Vue 3, Vite, TypeScript, and Tailwind CSS. Targets Chrome Manifest V3
 ./src/view           - Vue components
 ./src/assets         - static assets used by components
 ./manifest.json      - Chrome extension manifest (single source of truth)
-./public/index.html  - local debug page for iterating on UI without loading in Chrome
 ./tests              - unit tests
 ```
 
@@ -40,15 +39,6 @@ npm run dev
 Then load `./dist` as an unpacked extension in Chrome (see [Loading in Chrome](#loading-in-chrome)).
 Chrome will pick up most changes automatically when files rebuild — for background script
 changes you may need to click the reload icon on `chrome://extensions`.
-
-### Debug page (UI iteration without Chrome)
-
-Open `public/index.html` directly in a browser or via a local file server. It links to
-the entry point HTML files so you can iterate on popup UI quickly without reloading
-the extension:
-
-- `src/entry/logged_out.html` — the default popup (unauthenticated)
-- `src/entry/logged_in.html` — the popup shown after login
 
 ### Loading in Chrome
 
